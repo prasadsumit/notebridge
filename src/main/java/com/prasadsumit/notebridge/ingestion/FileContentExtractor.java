@@ -5,6 +5,7 @@ import org.apache.tika.exception.TikaException;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.Locale;
 import java.util.Set;
@@ -15,7 +16,11 @@ public class FileContentExtractor {
     private final Tika tika = new Tika();
 
     public boolean supports(Path path) {
-        String name = path.getFileName().toString();
+        return supports(path.getFileName().toString());
+    }
+
+    public boolean supports(String name) {
+        if (name == null || name.isBlank()) return false;
         int dot = name.lastIndexOf('.');
         return dot >= 0 && SUPPORTED_EXTENSIONS.contains(name.substring(dot + 1).toLowerCase(Locale.ROOT));
     }
@@ -25,6 +30,14 @@ public class FileContentExtractor {
             return tika.parseToString(path).trim();
         } catch (TikaException exception) {
             throw new IOException("Could not parse " + path.getFileName(), exception);
+        }
+    }
+
+    public String extract(InputStream content, String fileName) throws IOException {
+        try {
+            return tika.parseToString(content).trim();
+        } catch (TikaException exception) {
+            throw new IOException("Could not parse " + fileName, exception);
         }
     }
 }

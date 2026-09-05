@@ -3,15 +3,13 @@ package com.prasadsumit.notebridge.ingestion;
 import com.prasadsumit.notebridge.persistence.*;
 import com.prasadsumit.notebridge.review.ConflictDetectionService;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
@@ -21,7 +19,6 @@ import java.util.stream.Stream;
 @Service
 public class NoteSyncService {
     private static final int CHUNK_SIZE = 1_400;
-    private final Path notesRoot;
     private final FileContentExtractor extractor;
     private final IndexedDocumentRepository documents;
     private final NoteChunkRepository chunks;
@@ -29,10 +26,8 @@ public class NoteSyncService {
     private final ConflictDetectionService conflictDetection;
     private final VectorStore vectorStore;
 
-    public NoteSyncService(@Value("${notebridge.notes-root}") String notesRoot, FileContentExtractor extractor,
-                           IndexedDocumentRepository documents, NoteChunkRepository chunks,
+    public NoteSyncService(FileContentExtractor extractor, IndexedDocumentRepository documents, NoteChunkRepository chunks,
                            ConflictReviewRepository conflicts, ConflictDetectionService conflictDetection, VectorStore vectorStore) {
-        this.notesRoot = Path.of(notesRoot).toAbsolutePath().normalize();
         this.extractor = extractor;
         this.documents = documents;
         this.chunks = chunks;
@@ -42,19 +37,15 @@ public class NoteSyncService {
     }
 
     @Transactional
-    public SyncResult sync() throws IOException {
-        if (!Files.isDirectory(notesRoot)) {
-            throw new IllegalStateException("The configured notes folder does not exist: " + notesRoot);
-        }
+    public SyncResult sync(List<SelectedFile> selectedFiles) throws IOException {
         Set<String> discovered = new HashSet<>();
         int[] counts = new int[4];
-        try (Stream<Path> paths = Files.walk(notesRoot)) {
-            for (Path path : paths.filter(Files::isRegularFile).filter(extractor::supports).toList()) {
-                Path safePath = path.toRealPath();
-                if (!safePath.startsWith(notesRoot.toRealPath())) continue;
-                String relativePath = notesRoot.relativize(safePath).toString().replace('\\', '/');
-                discovered.add(relativePath);
-                String content = extractor.extract(safePath);
+        for (SelectedFile selectedFile : selectedFiles) {
+            if (!extractor.supports(selectedFile.file().getOriginalFilename())) continue;
+            String relativePath = selectedFile.relativePath();
+            discovered.add(relativePath);
+            try (var input = selectedFile.file().getInputStream()) {
+                String content = extractor.extract(input, relativePath);
                 if (content.isBlank()) { counts[3]++; continue; }
                 String hash = sha256(content);
                 Optional<IndexedDocument> existing = documents.findByRelativePath(relativePath);
@@ -64,7 +55,7 @@ public class NoteSyncService {
                 else { document.setRelativePath(relativePath); counts[0]++; }
                 document.setFormat(extension(relativePath));
                 document.setContentHash(hash);
-                document.setSourceModifiedAt(Files.getLastModifiedTime(safePath).toInstant());
+                document.setSourceModifiedAt(selectedFile.modifiedAt());
                 document.setIndexedAt(Instant.now());
                 document.setContent(content);
                 documents.save(document);
@@ -80,6 +71,8 @@ public class NoteSyncService {
 
     public List<IndexedDocument> documents() { return documents.findAll().stream().sorted(Comparator.comparing(IndexedDocument::getRelativePath)).toList(); }
 
+    public record SelectedFile(String relativePath, Instant modifiedAt, MultipartFile file) {}
+
     private void indexChunks(IndexedDocument document, String content) {
         int sequence = 0;
         for (int from = 0; from < content.length(); from += CHUNK_SIZE) {
@@ -88,17 +81,20 @@ public class NoteSyncService {
             NoteChunk chunk = new NoteChunk();
             chunk.setDocument(document); chunk.setSequenceNumber(sequence++); chunk.setContent(content.substring(from, to).trim()); chunk.setExcluded(false);
             chunk = chunks.save(chunk);
-            vectorStore.add(List.of(new Document("chunk-" + chunk.getId(), chunk.getContent(), Map.of("chunkId", chunk.getId(), "path", document.getRelativePath()))));
+            vectorStore.add(List.of(new Document(vectorId(chunk.getId()), chunk.getContent(), Map.of("chunkId", chunk.getId(), "path", document.getRelativePath()))));
             from = to - CHUNK_SIZE;
         }
     }
 
     private void deleteVectors(IndexedDocument document) {
-        List<String> ids = chunks.findByDocument(document).stream().map(chunk -> "chunk-" + chunk.getId()).toList();
+        List<String> ids = chunks.findByDocument(document).stream().map(chunk -> vectorId(chunk.getId())).toList();
         if (!ids.isEmpty()) vectorStore.delete(ids);
     }
 
     private static String extension(String path) { return path.substring(path.lastIndexOf('.') + 1).toLowerCase(Locale.ROOT); }
+    private static String vectorId(Long chunkId) {
+        return UUID.nameUUIDFromBytes(("notebridge-chunk-" + chunkId).getBytes(StandardCharsets.UTF_8)).toString();
+    }
     private static String sha256(String value) {
         try { return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8))); }
         catch (NoSuchAlgorithmException exception) { throw new IllegalStateException(exception); }

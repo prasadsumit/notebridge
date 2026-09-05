@@ -29,14 +29,16 @@ class OpenAiProvider implements AiProvider {
     }
 
     @Override
-    public ConflictAssessment assessConflict(SourceExcerpt first, SourceExcerpt second) {
+    public ConflictAssessment assessClaim(SourceExcerpt excerpt) {
         String prompt = """
-                Assess whether these two note excerpts make incompatible factual claims. Be conservative: similarity, nuance,
-                omissions, and different scopes are not conflicts. This is only a suspected-conflict review for the note owner,
-                not external verification. If they conflict, give a brief neutral rationale and confidence 0-100.
-                FIRST (%s): %s
-                SECOND (%s): %s
-                """.formatted(first.citation(), first.content(), second.citation(), second.content());
+                Fact-check the factual claims in this note excerpt using your general knowledge. Identify a claim as incorrect only
+                when it is materially false or expresses a clear misconception. Do not flag subjective statements, incomplete but
+                not misleading explanations, opinions, stylistic choices, or claims you cannot verify confidently. For example,
+                saying Java is the programming language used with HTML and CSS for browser interactivity is a misconception: that
+                role is generally JavaScript. This is a review suggestion for the note owner, not an authoritative correction.
+                If a material error exists, state the specific correction briefly and give confidence 0-100.
+                EXCERPT (%s): %s
+                """.formatted(excerpt.citation(), excerpt.content());
         return chatClient.prompt().user(prompt).call().entity(ConflictAssessment.class,
                 spec -> spec.useProviderStructuredOutput().validateSchema());
     }

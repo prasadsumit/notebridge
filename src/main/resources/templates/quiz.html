@@ -1,7 +1,8 @@
 <!doctype html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::section})}">
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::div.page-content})}">
 <head><title th:text="${quiz.title + ' · Notebridge'}">Quiz · Notebridge</title></head>
 <body>
+<div class="page-content">
 <section class="page-header compact"><p class="eyebrow" th:text="${quiz.difficulty + ' · ' + quiz.questionType}"></p>
     <h1 th:text="${quiz.title}"></h1>
     <p class="muted" th:if="${quiz.timeLimitMinutes}" th:text="${quiz.timeLimitMinutes + ' minute timer'}"></p>
@@ -15,5 +16,6 @@
     </article>
     <button class="button button-primary" type="submit">Submit answers <span>→</span></button>
 </form>
+</div>
 </body>
 </html>

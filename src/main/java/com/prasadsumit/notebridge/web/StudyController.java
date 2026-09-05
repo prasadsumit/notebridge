@@ -12,9 +12,13 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.http.HttpStatus;
 
 import java.io.IOException;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -39,12 +43,22 @@ public class StudyController {
         return "sources";
     }
 
-    @PostMapping("/sources/sync")
-    String sync(RedirectAttributes flash) {
+    @PostMapping(path = "/sources/sync", consumes = "multipart/form-data")
+    String sync(@RequestParam("files") java.util.List<MultipartFile> files,
+                @RequestParam("relativePaths") java.util.List<String> relativePaths,
+                @RequestParam("modifiedAts") java.util.List<Long> modifiedAts,
+                RedirectAttributes flash) {
         try {
-            SyncResult result = syncService.sync();
+            if (files.size() != relativePaths.size() || files.size() != modifiedAts.size()) {
+                throw new IllegalArgumentException("The selected files could not be read. Please choose the folder again.");
+            }
+            var selectedFiles = new ArrayList<NoteSyncService.SelectedFile>();
+            for (int index = 0; index < files.size(); index++) {
+                selectedFiles.add(new NoteSyncService.SelectedFile(safeRelativePath(relativePaths.get(index)), Instant.ofEpochMilli(modifiedAts.get(index)), files.get(index)));
+            }
+            SyncResult result = syncService.sync(selectedFiles);
             flash.addFlashAttribute("message", "Sync complete: %d added, %d updated, %d removed, %d unchanged.".formatted(result.added(), result.updated(), result.removed(), result.skipped()));
-        } catch (IOException | IllegalStateException exception) {
+        } catch (IOException | IllegalArgumentException exception) {
             flash.addFlashAttribute("error", exception.getMessage());
         }
         return "redirect:/sources";
@@ -60,6 +74,12 @@ public class StudyController {
     String dismiss(@PathVariable long id) {
         reviews.dismiss(id);
         return "redirect:/reviews";
+    }
+
+    @PostMapping(value = "/reviews/{id}/dismiss", params = "partial")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    void dismissWithoutRefresh(@PathVariable long id) {
+        reviews.dismiss(id);
     }
 
     @GetMapping("/quizzes/new")
@@ -115,5 +135,13 @@ public class StudyController {
 
     private java.util.List<com.prasadsumit.notebridge.persistence.IndexedDocument> syncServiceDocuments() {
         return syncService.documents();
+    }
+
+    private static String safeRelativePath(String path) {
+        String normalized = path.replace('\\', '/');
+        if (normalized.isBlank() || normalized.startsWith("/") || normalized.contains("../") || normalized.equals("..")) {
+            throw new IllegalArgumentException("A selected file had an invalid folder path.");
+        }
+        return normalized;
     }
 }

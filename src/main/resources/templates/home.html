@@ -1,8 +1,9 @@
 <!doctype html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
-      th:replace="~{fragments/layout :: layout(~{::title}, ~{::section})}">
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::div.page-content})}">
 <head><title>Notebridge — Learn from your notes</title></head>
 <body>
+<div class="page-content">
 <section class="hero">
     <div class="eyebrow">Your private study companion</div>
     <h1>Make your notes<br><em>do more.</em></h1>
@@ -40,5 +41,6 @@
             for indexing and generation are sent to your selected provider.</p>
     </div>
 </section>
+</div>
 </body>
 </html>

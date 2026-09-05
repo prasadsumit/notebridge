@@ -10,7 +10,7 @@ import java.util.List;
 public interface AiProvider {
     GeneratedQuiz generateQuiz(QuizRequest request, List<SourceExcerpt> excerpts);
 
-    ConflictAssessment assessConflict(SourceExcerpt first, SourceExcerpt second);
+    ConflictAssessment assessClaim(SourceExcerpt excerpt);
 
     record SourceExcerpt(Long chunkId, String citation, String content) {
     }

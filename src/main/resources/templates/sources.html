@@ -1,25 +1,51 @@
 <!doctype html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::section})}">
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::div.page-content})}">
 <head><title>Sources · Notebridge</title></head>
 <body>
+<div class="page-content">
 <section class="page-header"><p class="eyebrow">Step 1</p>
     <h1>Sources</h1>
-    <p class="lede">Sync the read-only notes folder mounted at <code>/notes</code>. Nothing in this app can edit your
-        originals.</p>
-    <form th:action="@{/sources/sync}" method="post">
-        <button class="button button-primary">Sync notes <span>→</span></button>
+    <p class="lede">Choose a folder to index its Markdown, text, PDF, and DOCX files. Your original files are only
+        read; Notebridge never changes them.</p>
+    <form id="folder-sync-form" th:action="@{/sources/sync}" method="post" enctype="multipart/form-data">
+        <input id="notes-folder" name="files" type="file" webkitdirectory directory multiple hidden>
+        <button class="button button-primary" type="button" id="choose-folder">Choose folder &amp; sync <span>→</span></button>
     </form>
+    <p class="hero-actions" th:unless="${#lists.isEmpty(documents)}">
+        <a class="button button-primary" th:href="@{/quizzes/new}">Create a quiz <span>→</span></a>
+    </p>
     <p class="flash success" th:if="${message}" th:text="${message}"></p>
-    <p class="flash error" th:if="${error}" th:text="${error}"></p></section>
+    <p class="flash error" th:if="${error}" th:text="${error}"></p>
+    <script>
+        const folderInput = document.getElementById('notes-folder');
+        const syncForm = document.getElementById('folder-sync-form');
+        const chooseButton = document.getElementById('choose-folder');
+        chooseButton.addEventListener('click', () => folderInput.click());
+        folderInput.addEventListener('change', () => {
+            if (!folderInput.files.length) return;
+            for (const file of folderInput.files) {
+                const path = file.webkitRelativePath || file.name;
+                const relativePath = document.createElement('input');
+                relativePath.type = 'hidden'; relativePath.name = 'relativePaths'; relativePath.value = path;
+                const modifiedAt = document.createElement('input');
+                modifiedAt.type = 'hidden'; modifiedAt.name = 'modifiedAts'; modifiedAt.value = file.lastModified;
+                syncForm.append(relativePath, modifiedAt);
+            }
+            chooseButton.disabled = true;
+            chooseButton.textContent = 'Syncing…';
+            syncForm.submit();
+        });
+    </script>
+</section>
 <section class="content-card">
     <div class="card-heading"><h2>Indexed files</h2><span th:text="${#lists.size(documents)} + ' files'"></span></div>
-    <p th:if="${#lists.isEmpty(documents)}" class="empty">No notes yet. Add files to the mounted folder, then run a
-        sync.</p>
+    <p th:if="${#lists.isEmpty(documents)}" class="empty">No notes yet. Choose your notes folder to run the first sync.</p>
     <ul class="source-list" th:unless="${#lists.isEmpty(documents)}">
         <li th:each="document : ${documents}"><strong th:text="${document.relativePath}"></strong><span
                 th:text="${document.format + ' · updated ' + #temporals.format(document.indexedAt, 'MMM d, yyyy')}"></span>
         </li>
     </ul>
 </section>
+</div>
 </body>
 </html>

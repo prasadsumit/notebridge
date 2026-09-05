@@ -15,6 +15,11 @@ spring:
   flyway:
     enabled: true
 
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 500MB
+
   ai:
     vectorstore:
       pgvector:
@@ -38,6 +43,3 @@ management:
     health:
       probes:
         enabled: true
-
-notebridge:
-  notes-root: ${NOTES_ROOT:/notes}

@@ -8,9 +8,6 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-notebridge}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-notebridge}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-notebridge}
-      NOTES_ROOT: /notes
-    volumes:
-      - ${NOTES_PATH:-./notes}:/notes:ro
     depends_on:
       db:
         condition: service_healthy

@@ -1,7 +1,8 @@
 <!doctype html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::section})}">
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::div.page-content})}">
 <head><title>New quiz · Notebridge</title></head>
 <body>
+<div class="page-content">
 <section class="page-header"><p class="eyebrow">Step 2</p>
     <h1>Create a quiz</h1>
     <p class="lede">Every correct answer is grounded in eligible note excerpts. Broader retrieval is used for harder
@@ -17,5 +18,6 @@
     in minutes <input th:field="*{timeLimitMinutes}" type="number" min="1" max="360" placeholder="Optional"></label>
     <button class="button button-primary" type="submit">Generate quiz <span>→</span></button>
 </form>
+</div>
 </body>
 </html>

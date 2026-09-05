@@ -1,7 +1,8 @@
 <!doctype html>
-<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::section})}">
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::div.page-content})}">
 <head><title>History · Notebridge</title></head>
 <body>
+<div class="page-content">
 <section class="page-header"><p class="eyebrow">Local archive</p>
     <h1>Quiz history</h1>
     <p class="lede">Every generated quiz stays on your computer, even after your original notes change.</p></section>
@@ -12,5 +13,6 @@
                 th:text="${quiz.difficulty + ' · ' + #temporals.format(quiz.createdAt, 'MMM d, yyyy')}"></span></li>
     </ul>
 </section>
+</div>
 </body>
 </html>
