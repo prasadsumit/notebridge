@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: notebridge
+
+  ai:
+    openai:
+      # Pulls the API key from your environment variables for security
+      api-key: ${OPENAI_API_KEY}
+      chat:
+        options:
+          # Sets your default model (e.g., gpt-4o, gpt-4o-mini, gpt-4)
+          model: gpt-4o-mini
+          # Controls randomness: 0.0 is focused/deterministic, 1.0 is creative
+          temperature: 0.7
