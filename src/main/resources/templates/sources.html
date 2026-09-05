@@ -1,0 +1,25 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::section})}">
+<head><title>Sources · Notebridge</title></head>
+<body>
+<section class="page-header"><p class="eyebrow">Step 1</p>
+    <h1>Sources</h1>
+    <p class="lede">Sync the read-only notes folder mounted at <code>/notes</code>. Nothing in this app can edit your
+        originals.</p>
+    <form th:action="@{/sources/sync}" method="post">
+        <button class="button button-primary">Sync notes <span>→</span></button>
+    </form>
+    <p class="flash success" th:if="${message}" th:text="${message}"></p>
+    <p class="flash error" th:if="${error}" th:text="${error}"></p></section>
+<section class="content-card">
+    <div class="card-heading"><h2>Indexed files</h2><span th:text="${#lists.size(documents)} + ' files'"></span></div>
+    <p th:if="${#lists.isEmpty(documents)}" class="empty">No notes yet. Add files to the mounted folder, then run a
+        sync.</p>
+    <ul class="source-list" th:unless="${#lists.isEmpty(documents)}">
+        <li th:each="document : ${documents}"><strong th:text="${document.relativePath}"></strong><span
+                th:text="${document.format + ' · updated ' + #temporals.format(document.indexedAt, 'MMM d, yyyy')}"></span>
+        </li>
+    </ul>
+</section>
+</body>
+</html>

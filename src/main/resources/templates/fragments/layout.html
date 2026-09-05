@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" th:fragment="layout(title, content)">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Turn your notes into explainable practice tests.">
+    <title th:replace="${title}">Notebridge</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
+</head>
+<body>
+<div class="site-shell">
+    <header class="site-header">
+        <a class="brand" th:href="@{/}" aria-label="Notebridge home">
+            <span class="brand-mark" aria-hidden="true">N</span>
+            <span>Notebridge</span>
+        </a>
+        <span class="status-pill"><span class="status-dot"></span>Local-first</span>
+    </header>
+    <nav class="site-nav"><a th:href="@{/sources}">Sources</a><a th:href="@{/reviews}">Review queue</a><a
+            th:href="@{/quizzes/new}">New quiz</a><a th:href="@{/history}">History</a></nav>
+    <main th:replace="${content}"></main>
+    <footer>Notebridge runs on your computer. Your notes folder is always read-only.</footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::section})}">
+<head><title>Notebridge — Learn from your notes</title></head>
+<body>
+<section class="hero">
+    <div class="eyebrow">Your private study companion</div>
+    <h1>Make your notes<br><em>do more.</em></h1>
+    <p class="lede">Turn the material you already trust into thoughtful, explainable practice tests—without giving up
+        ownership of your study library.</p>
+    <div class="hero-actions">
+        <a class="button button-primary" th:href="@{/sources}">Set up your notes <span>→</span></a>
+        <span class="coming-soon">Choose a folder and run your first sync</span>
+    </div>
+</section>
+
+<section class="feature-grid" aria-label="How Notebridge works">
+    <article class="feature-card feature-card-accent">
+        <span class="feature-number">01</span>
+        <h2>Bring your notes</h2>
+        <p>Choose a local folder. Notebridge reads Markdown, text, PDF, and DOCX files without altering them.</p>
+    </article>
+    <article class="feature-card">
+        <span class="feature-number">02</span>
+        <h2>Study with confidence</h2>
+        <p>Potentially conflicting excerpts are held back for your review before they can shape a question.</p>
+    </article>
+    <article class="feature-card">
+        <span class="feature-number">03</span>
+        <h2>Learn what sticks</h2>
+        <p>Take cited MCQ or multi-select tests, see clear explanations, and revisit every attempt locally.</p>
+    </article>
+</section>
+
+<section class="privacy-note">
+    <div class="privacy-icon">⌁</div>
+    <div>
+        <h2>Built for your desk, not a dashboard.</h2>
+        <p>Your notes, quiz history, and database remain on your computer. When AI is enabled, only the excerpts needed
+            for indexing and generation are sent to your selected provider.</p>
+    </div>
+</section>
+</body>
+</html>

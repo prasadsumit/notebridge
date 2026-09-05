@@ -1,0 +1,16 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::section})}">
+<head><title>History · Notebridge</title></head>
+<body>
+<section class="page-header"><p class="eyebrow">Local archive</p>
+    <h1>Quiz history</h1>
+    <p class="lede">Every generated quiz stays on your computer, even after your original notes change.</p></section>
+<section class="content-card"><p th:if="${#lists.isEmpty(quizzes)}" class="empty">Your completed study sessions will
+    appear here.</p>
+    <ul class="source-list" th:unless="${#lists.isEmpty(quizzes)}">
+        <li th:each="quiz : ${quizzes}"><a th:href="@{/quizzes/{id}(id=${quiz.id})}" th:text="${quiz.title}"></a><span
+                th:text="${quiz.difficulty + ' · ' + #temporals.format(quiz.createdAt, 'MMM d, yyyy')}"></span></li>
+    </ul>
+</section>
+</body>
+</html>

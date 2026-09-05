@@ -1,0 +1,21 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::section})}">
+<head><title>New quiz · Notebridge</title></head>
+<body>
+<section class="page-header"><p class="eyebrow">Step 2</p>
+    <h1>Create a quiz</h1>
+    <p class="lede">Every correct answer is grounded in eligible note excerpts. Broader retrieval is used for harder
+        quizzes.</p>
+    <p class="flash error" th:if="${error}" th:text="${error}"></p></section>
+<form th:action="@{/quizzes}" th:object="${request}" method="post" class="setup-form"><label>Topic <input
+        th:field="*{topic}" placeholder="Optional, for example: Java collections"></label><label>Difficulty <select
+        th:field="*{difficulty}">
+    <option th:each="difficulty : ${difficulties}" th:value="${difficulty}" th:text="${difficulty}"></option>
+</select></label><label>Question type <select th:field="*{questionType}">
+    <option th:each="type : ${types}" th:value="${type}" th:text="${type}"></option>
+</select></label><label>Questions <input th:field="*{questionCount}" type="number" min="1" max="50"></label><label>Timer
+    in minutes <input th:field="*{timeLimitMinutes}" type="number" min="1" max="360" placeholder="Optional"></label>
+    <button class="button button-primary" type="submit">Generate quiz <span>→</span></button>
+</form>
+</body>
+</html>

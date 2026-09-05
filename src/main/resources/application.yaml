@@ -2,13 +2,42 @@ spring:
   application:
     name: notebridge
 
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/notebridge}
+    username: ${SPRING_DATASOURCE_USERNAME:notebridge}
+    password: ${SPRING_DATASOURCE_PASSWORD:notebridge}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+
+  flyway:
+    enabled: true
+
   ai:
+    vectorstore:
+      pgvector:
+        initialize-schema: true
     openai:
       # Pulls the API key from your environment variables for security
       api-key: ${OPENAI_API_KEY}
       chat:
         options:
           # Sets your default model (e.g., gpt-4o, gpt-4o-mini, gpt-4)
-          model: gpt-4o-mini
+          model: ${OPENAI_CHAT_MODEL:gpt-4o-mini}
           # Controls randomness: 0.0 is focused/deterministic, 1.0 is creative
           temperature: 0.7
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+notebridge:
+  notes-root: ${NOTES_ROOT:/notes}

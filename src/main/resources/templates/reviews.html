@@ -1,0 +1,21 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::section})}">
+<head><title>Review queue · Notebridge</title></head>
+<body>
+<section class="page-header"><p class="eyebrow">Note quality</p>
+    <h1>Review queue</h1>
+    <p class="lede">Suspected conflicts are excluded from quiz generation until you update the original note and sync
+        again.</p></section>
+<section class="content-card"><p th:if="${#lists.isEmpty(reviews)}" class="empty">Nothing needs your attention.</p>
+    <article th:each="review : ${reviews}" class="review"><span class="feature-number"
+                                                                th:text="${review.conflictType}"></span>
+        <h2 th:text="${review.chunk.document.relativePath}"></h2>
+        <p th:text="${review.rationale}"></p>
+        <p class="muted" th:text="${'Confidence: ' + review.confidence + '%'}"></p>
+        <form th:action="@{/reviews/{id}/dismiss(id=${review.id})}" method="post">
+            <button class="button" type="submit">Dismiss flag</button>
+        </form>
+    </article>
+</section>
+</body>
+</html>

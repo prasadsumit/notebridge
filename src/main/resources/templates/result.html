@@ -1,0 +1,18 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::section})}">
+<head><title>Results · Notebridge</title></head>
+<body>
+<section class="page-header"><p class="eyebrow">Completed</p>
+    <h1>Your result</h1>
+    <p class="score"><strong th:text="${attempt.score}"></strong><span
+            th:text="${' / ' + attempt.possibleScore}"></span></p>
+    <p class="lede">Correct answers and explanations are saved in this quiz snapshot.</p></section>
+<section class="question-list">
+    <article th:each="question : ${quiz.questions}" class="question result"><h2 th:text="${question.prompt}"></h2>
+        <p><strong>Explanation</strong><br><span th:text="${question.explanation}"></span></p>
+        <p th:if="${question.additionalLearningContext}"><strong>Additional learning context</strong><br><span
+                th:text="${question.additionalLearningContext}"></span></p>
+        <p class="muted" th:text="${'From your notes: ' + #strings.listJoin(question.citations, ', ')}"></p></article>
+</section>
+</body>
+</html>
