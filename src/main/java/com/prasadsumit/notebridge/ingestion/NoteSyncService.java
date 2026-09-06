@@ -58,7 +58,10 @@ public class NoteSyncService {
                 document.setSourceModifiedAt(selectedFile.modifiedAt());
                 document.setIndexedAt(Instant.now());
                 document.setContent(content);
-                documents.save(document);
+                // Spring Data may return a managed copy when saving a new
+                // entity. Chunks must reference that persisted document, not
+                // the transient instance created above.
+                document = documents.save(document);
                 indexChunks(document, content);
             }
         }
@@ -75,14 +78,16 @@ public class NoteSyncService {
 
     private void indexChunks(IndexedDocument document, String content) {
         int sequence = 0;
-        for (int from = 0; from < content.length(); from += CHUNK_SIZE) {
+        for (int from = 0; from < content.length();) {
             int to = Math.min(content.length(), from + CHUNK_SIZE);
             if (to < content.length()) { int boundary = content.lastIndexOf('\n', to); if (boundary > from + CHUNK_SIZE / 2) to = boundary; }
             NoteChunk chunk = new NoteChunk();
             chunk.setDocument(document); chunk.setSequenceNumber(sequence++); chunk.setContent(content.substring(from, to).trim()); chunk.setExcluded(false);
             chunk = chunks.save(chunk);
             vectorStore.add(List.of(new Document(vectorId(chunk.getId()), chunk.getContent(), Map.of("chunkId", chunk.getId(), "path", document.getRelativePath()))));
-            from = to - CHUNK_SIZE;
+            // This loop controls its cursor explicitly so a newline boundary
+            // cannot skip or repeat any source content.
+            from = to;
         }
     }
 

@@ -3,7 +3,7 @@
 <head><title>Sources · Notebridge</title></head>
 <body>
 <div class="page-content">
-<section class="page-header"><p class="eyebrow">Step 1</p>
+<section class="page-header"><p class="eyebrow"></p>
     <h1>Sources</h1>
     <p class="lede">Choose a folder to index its Markdown, text, PDF, and DOCX files. Your original files are only
         read; Notebridge never changes them.</p>
@@ -16,31 +16,9 @@
     </p>
     <p class="flash success" th:if="${message}" th:text="${message}"></p>
     <p class="flash error" th:if="${error}" th:text="${error}"></p>
-    <script>
-        const folderInput = document.getElementById('notes-folder');
-        const syncForm = document.getElementById('folder-sync-form');
-        const chooseButton = document.getElementById('choose-folder');
-        chooseButton.addEventListener('click', () => folderInput.click());
-        folderInput.addEventListener('change', () => {
-            if (!folderInput.files.length) return;
-            for (const file of folderInput.files) {
-                const path = file.webkitRelativePath || file.name;
-                const relativePath = document.createElement('input');
-                relativePath.type = 'hidden'; relativePath.name = 'relativePaths'; relativePath.value = path;
-                const modifiedAt = document.createElement('input');
-                modifiedAt.type = 'hidden'; modifiedAt.name = 'modifiedAts'; modifiedAt.value = file.lastModified;
-                syncForm.append(relativePath, modifiedAt);
-            }
-            chooseButton.disabled = true;
-            chooseButton.classList.add('is-loading');
-            chooseButton.setAttribute('aria-busy', 'true');
-            chooseButton.textContent = 'Syncing…';
-            syncForm.submit();
-        });
-    </script>
 </section>
 <section class="content-card">
-    <div class="card-heading"><h2>Indexed files</h2><span th:text="${#lists.size(documents)} + ' files'"></span></div>
+    <div class="card-heading"><div><h2>Indexed files</h2><p>Files available to generate quizzes.</p></div><span class="count-badge" th:text="${#lists.size(documents)} + ' files'"></span></div>
     <p th:if="${#lists.isEmpty(documents)}" class="empty">No notes yet. Choose your notes folder to run the first sync.</p>
     <ul class="source-list" th:unless="${#lists.isEmpty(documents)}">
         <li th:each="document : ${documents}"><strong th:text="${document.relativePath}"></strong><span

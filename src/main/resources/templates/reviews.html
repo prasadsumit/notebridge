@@ -3,25 +3,10 @@
 <head><title>Review queue · Notebridge</title></head>
 <body>
 <div class="page-content">
-<section class="page-header"><p class="eyebrow">Note quality</p>
+<section class="page-header"><p class="eyebrow"></p>
     <h1>Review queue</h1>
     <p class="lede">Potential factual errors are excluded from quiz generation until you update the original note and sync
         again.</p>
-    <script>
-        document.addEventListener('submit', async (event) => {
-            const form = event.target.closest('.dismiss-review');
-            if (!form) return;
-            event.preventDefault();
-            const button = form.querySelector('button[type="submit"]');
-            button.disabled = true;
-            button.classList.add('is-loading');
-            button.setAttribute('aria-busy', 'true');
-            button.textContent = 'Dismissing…';
-            const response = await fetch(form.action + '?partial', {method: 'POST', body: new FormData(form)});
-            if (response.ok) form.closest('.review').remove();
-            else form.submit();
-        });
-    </script>
 </section>
 <section class="content-card"><p th:if="${#lists.isEmpty(reviews)}" class="empty">Nothing needs your attention.</p>
     <article th:each="review : ${reviews}" class="review"><span class="feature-number"
@@ -30,7 +15,7 @@
         <p th:text="${review.rationale}"></p>
         <p class="muted" th:text="${'Confidence: ' + review.confidence + '%'}"></p>
         <form class="dismiss-review" th:action="@{/reviews/{id}/dismiss(id=${review.id})}" method="post">
-            <button class="button" type="submit">Dismiss flag</button>
+            <button class="button button-secondary" type="submit">Dismiss flag</button>
         </form>
     </article>
 </section>

@@ -6,34 +6,32 @@
     <meta name="description" content="Turn your notes into explainable practice tests.">
     <title th:replace="${title}">Notebridge</title>
     <link rel="stylesheet" th:href="@{/css/app.css}">
-    <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
 </head>
 <body>
-<div class="site-shell">
-    <header class="site-header">
+<div class="app-shell">
+    <aside class="sidebar" id="app-sidebar" aria-label="Primary navigation">
         <a class="brand" th:href="@{/}" aria-label="Notebridge home">
-            <span class="brand-mark" aria-hidden="true">N</span>
-            <span>Notebridge</span>
+            <span class="brand-mark" aria-hidden="true">N</span><span>Notebridge</span>
         </a>
-        <span class="status-pill"><span class="status-dot"></span>Local-first</span>
-    </header>
-    <nav class="site-nav"><a th:href="@{/sources}">Sources</a><a th:href="@{/reviews}">Review queue</a><a
-            th:href="@{/quizzes/new}">New quiz</a><a th:href="@{/history}">History</a></nav>
-    <main th:replace="${content}"></main>
-    <footer>Notebridge runs on your computer. Your notes folder is always read-only.</footer>
+        <p class="workspace-label">Study workspace</p>
+        <nav class="site-nav">
+            <a th:href="@{/}" data-route="/">Overview</a>
+            <a th:href="@{/sources}" data-route="/sources">Sources</a>
+            <a th:href="@{/reviews}" data-route="/reviews">Review queue</a>
+            <a th:href="@{/quizzes/new}" data-route="/quizzes">New quiz</a>
+            <a th:href="@{/history}" data-route="/history">History</a>
+        </nav>
+        <div class="sidebar-footer"><span class="status-dot"></span><span>Local-first workspace</span><small>Your notes stay read-only.</small></div>
+    </aside>
+    <div class="app-workspace">
+        <header class="topbar">
+            <button class="menu-button" type="button" aria-controls="app-sidebar" aria-expanded="false">Menu</button>
+            <p class="breadcrumb">Notebridge <span aria-hidden="true">/</span> <span data-page-name>Overview</span></p>
+        </header>
+        <main><div th:replace="${content}"></div></main>
+        <footer>Notebridge runs on your computer. Your notes folder is always read-only.</footer>
+    </div>
 </div>
-<script>
-    document.addEventListener('submit', event => {
-        const form = event.target.closest('.api-form');
-        if (!form || form.dataset.submitting) return;
-        form.dataset.submitting = 'true';
-        const button = form.querySelector('button[type="submit"]');
-        if (!button) return;
-        button.disabled = true;
-        button.classList.add('is-loading');
-        button.setAttribute('aria-busy', 'true');
-        button.textContent = button.dataset.loadingLabel || 'Working…';
-    });
-</script>
+<script th:src="@{/js/app.js}" defer></script>
 </body>
 </html>
