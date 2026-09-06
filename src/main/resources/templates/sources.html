@@ -5,11 +5,20 @@
 <div class="page-content">
 <section class="page-header"><p class="eyebrow"></p>
     <h1>Sources</h1>
-    <p class="lede">Choose a folder to index its Markdown, text, PDF, and DOCX files. Your original files are only
-        read; Notebridge never changes them.</p>
+    <p class="lede">Add one or more Markdown, text, PDF, or DOCX files. Your original files are only read;
+        Notebridge never changes them.</p>
     <form id="folder-sync-form" th:action="@{/sources/sync}" method="post" enctype="multipart/form-data">
-        <input id="notes-folder" name="files" type="file" webkitdirectory directory multiple hidden>
-        <button class="button button-primary" type="button" id="choose-folder">Choose folder &amp; sync <span>→</span></button>
+        <input id="notes-files" name="files" type="file" accept=".md,.txt,.pdf,.docx,text/markdown,text/plain,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" multiple hidden>
+        <div class="source-dropzone" id="source-dropzone" role="button" tabindex="0" aria-describedby="source-picker-hint">
+            <strong>Drop files here</strong>
+            <span id="source-picker-hint">or choose files from your computer</span>
+            <button class="button button-secondary" type="button" id="choose-files">Choose files</button>
+        </div>
+        <div class="upload-status" id="upload-status" hidden aria-live="polite">
+            <div class="upload-status-heading"><span id="upload-status-label">Preparing upload…</span><span id="upload-percent">0%</span></div>
+            <div class="progress-track" role="progressbar" aria-label="File upload progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="upload-progress"></span></div>
+        </div>
+        <p class="selected-files" id="selected-files" aria-live="polite"></p>
     </form>
     <p class="hero-actions" th:unless="${#lists.isEmpty(documents)}">
         <a class="button button-primary" th:href="@{/quizzes/new}">Create a quiz <span>→</span></a>
@@ -19,7 +28,7 @@
 </section>
 <section class="content-card">
     <div class="card-heading"><div><h2>Indexed files</h2><p>Files available to generate quizzes.</p></div><span class="count-badge" th:text="${#lists.size(documents)} + ' files'"></span></div>
-    <p th:if="${#lists.isEmpty(documents)}" class="empty">No notes yet. Choose your notes folder to run the first sync.</p>
+    <p th:if="${#lists.isEmpty(documents)}" class="empty">No notes yet. Add files to create your first source set.</p>
     <ul class="source-list" th:unless="${#lists.isEmpty(documents)}">
         <li th:each="document : ${documents}"><strong th:text="${document.relativePath}"></strong><span
                 th:text="${document.format + ' · updated ' + #temporals.format(document.indexedAt, 'MMM d, yyyy')}"></span>

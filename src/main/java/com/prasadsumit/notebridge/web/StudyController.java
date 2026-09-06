@@ -45,19 +45,29 @@ public class StudyController {
 
     @PostMapping(path = "/sources/sync", consumes = "multipart/form-data")
     String sync(@RequestParam("files") java.util.List<MultipartFile> files,
-                @RequestParam("relativePaths") java.util.List<String> relativePaths,
-                @RequestParam("modifiedAts") java.util.List<Long> modifiedAts,
+                @RequestParam(value = "relativePaths", required = false) java.util.List<String> relativePaths,
+                @RequestParam(value = "modifiedAts", required = false) java.util.List<Long> modifiedAts,
                 RedirectAttributes flash) {
         try {
-            if (files.size() != relativePaths.size() || files.size() != modifiedAts.size()) {
-                throw new IllegalArgumentException("The selected files could not be read. Please choose the folder again.");
+            relativePaths = relativePaths == null ? java.util.List.of() : relativePaths;
+            modifiedAts = modifiedAts == null ? java.util.List.of() : modifiedAts;
+            if (!relativePaths.isEmpty() && files.size() != relativePaths.size()) {
+                throw new IllegalArgumentException("The selected files could not be read. Please choose the files again.");
+            }
+            if (!modifiedAts.isEmpty() && files.size() != modifiedAts.size()) {
+                throw new IllegalArgumentException("The selected files could not be read. Please try the upload again.");
             }
             var selectedFiles = new ArrayList<NoteSyncService.SelectedFile>();
             for (int index = 0; index < files.size(); index++) {
-                selectedFiles.add(new NoteSyncService.SelectedFile(safeRelativePath(relativePaths.get(index)), Instant.ofEpochMilli(modifiedAts.get(index)), files.get(index)));
+                MultipartFile file = files.get(index);
+                String fileName = file.getOriginalFilename();
+                if (fileName == null || fileName.isBlank()) continue;
+                String path = relativePaths.isEmpty() ? fileName : relativePaths.get(index);
+                Instant modifiedAt = modifiedAts.isEmpty() ? Instant.now() : Instant.ofEpochMilli(modifiedAts.get(index));
+                selectedFiles.add(new NoteSyncService.SelectedFile(safeRelativePath(path), modifiedAt, file));
             }
             SyncResult result = syncService.sync(selectedFiles);
-            flash.addFlashAttribute("message", "Sync complete: %d added, %d updated, %d removed, %d unchanged.".formatted(result.added(), result.updated(), result.removed(), result.skipped()));
+            flash.addFlashAttribute("message", "Upload complete: %d added, %d updated, %d unchanged.".formatted(result.added(), result.updated(), result.skipped()));
         } catch (IOException | IllegalArgumentException exception) {
             flash.addFlashAttribute("error", exception.getMessage());
         }

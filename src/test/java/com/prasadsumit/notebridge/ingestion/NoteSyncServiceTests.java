@@ -33,7 +33,9 @@ class NoteSyncServiceTests {
         when(extractor.supports("notes.md")).thenReturn(true);
         when(extractor.extract(any(), eq("notes.md"))).thenReturn(content);
         when(documents.findByRelativePath("notes.md")).thenReturn(Optional.empty());
-        when(documents.findAll()).thenReturn(List.of());
+        IndexedDocument existingSource = new IndexedDocument();
+        existingSource.setRelativePath("already-indexed.md");
+        when(documents.findAll()).thenReturn(List.of(existingSource));
         when(documents.save(any(IndexedDocument.class))).thenAnswer(invocation -> invocation.getArgument(0));
         AtomicLong ids = new AtomicLong();
         when(chunks.save(any(NoteChunk.class))).thenAnswer(invocation -> {
@@ -46,7 +48,9 @@ class NoteSyncServiceTests {
         SyncResult result = service.sync(List.of(new NoteSyncService.SelectedFile("notes.md", Instant.now(), file)));
 
         assertEquals(1, result.added());
+        assertEquals(0, result.removed());
         verify(chunks, times(3)).save(any(NoteChunk.class));
         verify(vectorStore, times(3)).add(any());
+        verify(documents, never()).delete(any(IndexedDocument.class));
     }
 }

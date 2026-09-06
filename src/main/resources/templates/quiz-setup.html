@@ -8,7 +8,7 @@
     <p class="lede">Every correct answer is grounded in eligible note excerpts. Broader retrieval is used for harder
         quizzes.</p>
     <p class="flash error" th:if="${error}" th:text="${error}"></p></section>
-<form th:action="@{/quizzes}" th:object="${request}" method="post" class="setup-form api-form"><label>Topic <input
+<form th:action="@{/quizzes}" th:object="${request}" method="post" class="setup-form api-form" data-loading-overlay="Generating your quiz" data-loading-detail="This can take a moment while we ground questions in your sources."><label>Topic <input
         th:field="*{topic}" placeholder="Optional, for example: Java collections"></label><label>Difficulty <select
         th:field="*{difficulty}">
     <option th:each="difficulty : ${difficulties}" th:value="${difficulty}" th:text="${difficulty}"></option>

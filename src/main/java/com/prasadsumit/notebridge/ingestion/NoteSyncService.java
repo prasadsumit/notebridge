@@ -38,12 +38,10 @@ public class NoteSyncService {
 
     @Transactional
     public SyncResult sync(List<SelectedFile> selectedFiles) throws IOException {
-        Set<String> discovered = new HashSet<>();
         int[] counts = new int[4];
         for (SelectedFile selectedFile : selectedFiles) {
             if (!extractor.supports(selectedFile.file().getOriginalFilename())) continue;
             String relativePath = selectedFile.relativePath();
-            discovered.add(relativePath);
             try (var input = selectedFile.file().getInputStream()) {
                 String content = extractor.extract(input, relativePath);
                 if (content.isBlank()) { counts[3]++; continue; }
@@ -64,9 +62,6 @@ public class NoteSyncService {
                 document = documents.save(document);
                 indexChunks(document, content);
             }
-        }
-        for (IndexedDocument document : documents.findAll()) {
-            if (!discovered.contains(document.getRelativePath())) { conflicts.deleteByChunkDocument(document); deleteVectors(document); documents.delete(document); counts[2]++; }
         }
         int flagged = (counts[0] + counts[1]) == 0 ? 0 : conflictDetection.analyseEligibleChunks();
         return new SyncResult(counts[0], counts[1], counts[2], counts[3], flagged);

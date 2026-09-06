@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Turn your notes into explainable practice tests.">
     <title th:replace="${title}">Notebridge</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
@@ -31,6 +34,9 @@
         <main><div th:replace="${content}"></div></main>
         <footer>Notebridge runs on your computer. Your notes folder is always read-only.</footer>
     </div>
+</div>
+<div class="loading-overlay" id="loading-overlay" hidden role="status" aria-live="assertive" aria-atomic="true">
+    <div class="loading-panel"><span class="loading-spinner" aria-hidden="true"></span><strong id="loading-overlay-title">Working…</strong><span id="loading-overlay-detail">Please keep this page open.</span></div>
 </div>
 <script th:src="@{/js/app.js}" defer></script>
 </body>
