@@ -22,5 +22,18 @@
     <main th:replace="${content}"></main>
     <footer>Notebridge runs on your computer. Your notes folder is always read-only.</footer>
 </div>
+<script>
+    document.addEventListener('submit', event => {
+        const form = event.target.closest('.api-form');
+        if (!form || form.dataset.submitting) return;
+        form.dataset.submitting = 'true';
+        const button = form.querySelector('button[type="submit"]');
+        if (!button) return;
+        button.disabled = true;
+        button.classList.add('is-loading');
+        button.setAttribute('aria-busy', 'true');
+        button.textContent = button.dataset.loadingLabel || 'Working…';
+    });
+</script>
 </body>
 </html>

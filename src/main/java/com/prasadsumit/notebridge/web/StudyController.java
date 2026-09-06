@@ -102,12 +102,18 @@ public class StudyController {
 
     @GetMapping("/quizzes/{id}")
     String quiz(@PathVariable long id, Model model) {
+        var attempt = quizzes.completedAttempt(id);
+        if (attempt.isPresent())
+            return "redirect:/quizzes/" + id + "/attempts/" + attempt.get().getId();
         model.addAttribute("quiz", quizzes.get(id));
         return "quiz";
     }
 
     @PostMapping("/quizzes/{id}/submit")
     String submit(@PathVariable long id, @RequestParam MultiValueMap<String, String> form) {
+        var completedAttempt = quizzes.completedAttempt(id);
+        if (completedAttempt.isPresent())
+            return "redirect:/quizzes/" + id + "/attempts/" + completedAttempt.get().getId();
         Map<Long, Set<Integer>> answers = new HashMap<>();
         form.forEach((key, values) -> {
             if (key.startsWith("answer_")) {
@@ -122,14 +128,18 @@ public class StudyController {
 
     @GetMapping("/quizzes/{quizId}/attempts/{attemptId}")
     String result(@PathVariable long quizId, @PathVariable long attemptId, Model model) {
-        model.addAttribute("quiz", quizzes.get(quizId));
-        model.addAttribute("attempt", quizzes.getAttempt(attemptId));
+        var quiz = quizzes.get(quizId);
+        var attempt = quizzes.getAttempt(attemptId);
+        if (!attempt.getQuiz().getId().equals(quiz.getId())) throw new org.springframework.web.server.ResponseStatusException(HttpStatus.NOT_FOUND);
+        model.addAttribute("quiz", quiz);
+        model.addAttribute("attempt", attempt);
+        model.addAttribute("selectedAnswers", quizzes.selectedAnswers(attempt));
         return "result";
     }
 
     @GetMapping("/history")
     String history(Model model) {
-        model.addAttribute("quizzes", quizzes.history());
+        model.addAttribute("completedQuizzes", quizzes.history());
         return "history";
     }
 

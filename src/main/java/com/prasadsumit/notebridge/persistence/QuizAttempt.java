@@ -13,7 +13,7 @@ import java.time.Instant;
 @Getter @Setter @NoArgsConstructor
 public class QuizAttempt {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY) private Long id;
-    @ManyToOne(optional = false, fetch = FetchType.LAZY) private Quiz quiz;
+    @ManyToOne(optional = false, fetch = FetchType.EAGER) private Quiz quiz;
     @Column(nullable = false) private Instant submittedAt;
     @Column(nullable = false) private int score;
     @Column(nullable = false) private int possibleScore;

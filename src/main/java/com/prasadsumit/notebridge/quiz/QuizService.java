@@ -13,10 +13,13 @@ import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 
 import java.time.Instant;
+import java.security.SecureRandom;
 import java.util.*;
 
 @Service
 public class QuizService {
+    public record CompletedQuiz(Quiz quiz, QuizAttempt attempt) { }
+    private record ShuffledOptions(List<String> options, Set<Integer> correctIndexes) { }
     private final NoteChunkRepository chunks;
     private final QuizRepository quizzes;
     private final QuizAttemptRepository attempts;
@@ -63,8 +66,9 @@ public class QuizService {
             target.setQuiz(quiz);
             target.setPosition(i + 1);
             target.setPrompt(source.prompt());
-            target.setOptions(new ArrayList<>(source.options()));
-            target.setCorrectOptionIndexes(new HashSet<>(source.correctOptionIndexes()));
+            ShuffledOptions shuffled = shuffleOptions(source, i);
+            target.setOptions(shuffled.options());
+            target.setCorrectOptionIndexes(shuffled.correctIndexes());
             target.setExplanation(source.explanation());
             target.setAdditionalLearningContext(source.additionalLearningContext());
             target.setCitations(new ArrayList<>(source.citations()));
@@ -73,21 +77,60 @@ public class QuizService {
         return quizzes.save(quiz);
     }
 
+    private ShuffledOptions shuffleOptions(GeneratedQuiz.GeneratedQuestion question, int questionIndex) {
+        List<Integer> originalIndexes = new ArrayList<>();
+        for (int index = 0; index < question.options().size(); index++) originalIndexes.add(index);
+        Collections.shuffle(originalIndexes, new SecureRandom());
+        if (question.correctOptionIndexes().size() == 1) {
+            int correctOriginalIndex = question.correctOptionIndexes().getFirst();
+            originalIndexes.remove(Integer.valueOf(correctOriginalIndex));
+            originalIndexes.add(questionIndex % question.options().size(), correctOriginalIndex);
+        }
+
+        List<String> shuffledOptions = new ArrayList<>();
+        Set<Integer> correctIndexes = new HashSet<>();
+        for (int newIndex = 0; newIndex < originalIndexes.size(); newIndex++) {
+            int originalIndex = originalIndexes.get(newIndex);
+            shuffledOptions.add(question.options().get(originalIndex));
+            if (question.correctOptionIndexes().contains(originalIndex)) correctIndexes.add(newIndex);
+        }
+        return new ShuffledOptions(shuffledOptions, correctIndexes);
+    }
+
     public Quiz get(long id) {
         return quizzes.findById(id).orElseThrow();
     }
 
-    public List<Quiz> history() {
-        return quizzes.findAll().stream().sorted(Comparator.comparing(Quiz::getCreatedAt).reversed()).toList();
+    public List<CompletedQuiz> history() {
+        return attempts.findAllByOrderBySubmittedAtDesc().stream()
+                .map(attempt -> new CompletedQuiz(get(attempt.getQuiz().getId()), attempt)).toList();
     }
 
     public QuizAttempt getAttempt(long id) {
         return attempts.findById(id).orElseThrow();
     }
 
+    public Optional<QuizAttempt> completedAttempt(long quizId) {
+        return attempts.findFirstByQuizIdOrderBySubmittedAtDesc(quizId);
+    }
+
+    public Map<Long, Set<Integer>> selectedAnswers(QuizAttempt attempt) {
+        try {
+            Map<String, List<Integer>> persisted = objectMapper.readValue(attempt.getSelectedAnswersJson(),
+                    new com.fasterxml.jackson.core.type.TypeReference<>() { });
+            Map<Long, Set<Integer>> selected = new HashMap<>();
+            persisted.forEach((questionId, answers) -> selected.put(Long.valueOf(questionId), new HashSet<>(answers)));
+            return selected;
+        } catch (JsonProcessingException exception) {
+            throw new IllegalStateException("Could not read saved answers", exception);
+        }
+    }
+
     @Transactional
     public QuizAttempt submit(long quizId, Map<Long, Set<Integer>> answers) {
         Quiz quiz = get(quizId);
+        if (completedAttempt(quizId).isPresent())
+            throw new IllegalStateException("This quiz has already been completed.");
         int score = 0;
         for (QuizQuestion question : quiz.getQuestions())
             if (question.getCorrectOptionIndexes().equals(answers.getOrDefault(question.getId(), Set.of()))) score++;

@@ -32,6 +32,8 @@
                 syncForm.append(relativePath, modifiedAt);
             }
             chooseButton.disabled = true;
+            chooseButton.classList.add('is-loading');
+            chooseButton.setAttribute('aria-busy', 'true');
             chooseButton.textContent = 'Syncing…';
             syncForm.submit();
         });

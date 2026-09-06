@@ -7,9 +7,12 @@
     <h1>Your result</h1>
     <p class="score"><strong th:text="${attempt.score}"></strong><span
             th:text="${' / ' + attempt.possibleScore}"></span></p>
-    <p class="lede">Correct answers and explanations are saved in this quiz snapshot.</p></section>
+    <p class="lede">Your answers, the correct options, and explanations are saved in this quiz snapshot. This quiz is complete and cannot be reattempted.</p></section>
 <section class="question-list">
     <article th:each="question : ${quiz.questions}" class="question result"><h2 th:text="${question.prompt}"></h2>
+        <p class="answer-key"><span th:each="option, stat : ${question.options}" class="option result-option"
+            th:classappend="${question.correctOptionIndexes.contains(stat.index) ? ' is-correct' : (selectedAnswers[question.id] != null and selectedAnswers[question.id].contains(stat.index) ? ' is-incorrect' : '')}">
+            <span class="answer-status" th:text="${question.correctOptionIndexes.contains(stat.index) ? (selectedAnswers[question.id] != null and selectedAnswers[question.id].contains(stat.index) ? 'Your correct answer' : 'Correct answer') : (selectedAnswers[question.id] != null and selectedAnswers[question.id].contains(stat.index) ? 'Your answer' : 'Not selected')}"></span><span th:text="${option}"></span></span></p>
         <p><strong>Explanation</strong><br><span th:text="${question.explanation}"></span></p>
         <p th:if="${question.additionalLearningContext}"><strong>Additional learning context</strong><br><span
                 th:text="${question.additionalLearningContext}"></span></p>

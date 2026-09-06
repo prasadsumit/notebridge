@@ -21,6 +21,13 @@ class OpenAiProvider implements AiProvider {
                 must be clearly separate, and cannot be needed to answer correctly. %s question format is requested.
                 Difficulty: %s. Question count: %d. Topic: %s.
 
+                Make every question and every answer option descriptive at every difficulty. Include the
+                relevant subject, condition, or scenario in the question rather than relying on vague prompts such as
+                "What is this?" or "Which is correct?". Write options as complete, specific alternatives. Increase difficulty through reasoning,
+                comparison, application, and subtle but evidence-supported distinctions—not by making the wording shorter,
+                more ambiguous, or less informative.
+                Do not systematically place correct answers in the first option. Vary their positions across the quiz.
+
                 EVIDENCE:
                 %s
                 """.formatted(request.questionType(), request.difficulty(), request.questionCount(), request.topicOrDefault(), evidence);
