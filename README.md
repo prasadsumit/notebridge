@@ -1,3 +1,6 @@
+
+<img width="484" height="136" alt="notebridge" src="https://github.com/user-attachments/assets/daaf48f1-5ae6-424f-9bd8-a1c7765ff8f2" />
+
 # Notebridge
 
 Notebridge turns a local collection of study notes into cited practice quizzes. Upload a folder of notes, let the app index the material and surface questionable claims for review, then generate and take quizzes grounded in the eligible excerpts.
