@@ -6,12 +6,16 @@
 <section class="page-header"><p class="eyebrow"></p>
     <h1>Quiz history</h1>
     <p class="lede">Every completed quiz stays on your computer, even after your original notes change.</p></section>
-<section class="content-card"><p th:if="${#lists.isEmpty(completedQuizzes)}" class="empty">Your completed study sessions will
-    appear here.</p>
+<section class="content-card">
+    <p th:if="${#lists.isEmpty(completedQuizzes)}" class="empty">Your completed study sessions will appear here.</p>
     <ul class="source-list history-list" th:unless="${#lists.isEmpty(completedQuizzes)}">
-        <li th:each="entry : ${completedQuizzes}"><div><a th:href="@{/quizzes/{quizId}/attempts/{attemptId}(quizId=${entry.quiz.id},attemptId=${entry.attempt.id})}" th:text="${entry.quiz.title}"></a>
-            <span th:text="${entry.quiz.difficulty + ' · ' + #temporals.format(entry.attempt.submittedAt, 'MMM d, yyyy')}"></span></div>
-            <strong th:text="${entry.attempt.score + ' / ' + entry.attempt.possibleScore}"></strong></li>
+        <li th:each="entry : ${completedQuizzes}">
+            <div>
+                <a th:href="@{/quizzes/{quizId}/attempts/{attemptId}(quizId=${entry.quiz.id},attemptId=${entry.attempt.id})}" th:text="${entry.quiz.title}"></a>
+                <span th:text="${entry.quiz.difficulty + ' · ' + #temporals.format(entry.attempt.submittedAt, 'MMM d, yyyy')}"></span>
+            </div>
+            <strong th:text="${entry.attempt.score + ' / ' + entry.attempt.possibleScore}"></strong>
+        </li>
     </ul>
 </section>
 </div>

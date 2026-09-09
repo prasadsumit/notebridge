@@ -5,9 +5,12 @@
 <div class="page-content">
 <section class="page-header"><p class="eyebrow">Completed</p>
     <h1>Your result</h1>
-    <p class="score"><strong th:text="${attempt.score}"></strong><span
-            th:text="${' / ' + attempt.possibleScore}"></span></p>
-    <p class="lede">Your answers, the correct options, and explanations are saved in this quiz snapshot. This quiz is complete and cannot be reattempted.</p></section>
+    <div class="result-summary">
+        <p class="score"><strong th:text="${attempt.score}"></strong><span
+                th:text="${' / ' + attempt.possibleScore}"></span></p>
+        <p class="lede">Your answers, the correct options, and explanations are saved in this quiz snapshot. This quiz is complete and cannot be reattempted.</p>
+    </div>
+</section>
 <section class="question-list">
     <article th:each="question : ${quiz.questions}" class="question result"><h2 th:text="${question.prompt}"></h2>
         <p class="answer-key"><span th:each="option, stat : ${question.options}" class="option result-option"

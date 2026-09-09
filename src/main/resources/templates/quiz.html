@@ -5,7 +5,6 @@
 <div class="page-content">
 <section class="page-header compact"><p class="eyebrow" th:text="${quiz.difficulty + ' · ' + quiz.questionType}"></p>
     <h1 th:text="${quiz.title}"></h1>
-    <p class="muted" th:if="${quiz.timeLimitMinutes}" th:text="${quiz.timeLimitMinutes + ' minute timer'}"></p>
 </section>
 <form th:action="@{/quizzes/{id}/submit(id=${quiz.id})}" method="post" class="question-list api-form">
     <article th:each="question : ${quiz.questions}" class="question"><p class="feature-number"

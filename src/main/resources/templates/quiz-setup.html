@@ -14,8 +14,7 @@
     <option th:each="difficulty : ${difficulties}" th:value="${difficulty}" th:text="${difficulty}"></option>
 </select></label><label>Question type <select th:field="*{questionType}">
     <option th:each="type : ${types}" th:value="${type}" th:text="${type}"></option>
-</select></label><label>Questions <input th:field="*{questionCount}" type="number" min="1" max="50"></label><label>Timer
-    in minutes <input th:field="*{timeLimitMinutes}" type="number" min="1" max="360" placeholder="Optional"></label>
+</select></label><label>Questions <input th:field="*{questionCount}" type="number" min="1" max="50"></label>
     <button class="button button-primary" type="submit" data-loading-label="Generating quiz…">Generate quiz <span>→</span></button>
 </form>
 </div>
