@@ -52,38 +52,140 @@ Required and optional variables:
 
 ## Run with Docker Compose
 
-```powershell
-docker compose up --build
+The application is available as a pre-built Docker image, so you do not need to install Java, Maven, PostgreSQL, or build the application locally.
+
+### Prerequisites
+
+Make sure you have:
+
+* [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running
+* Docker Compose available
+
+You can verify the installation with:
+
+```bash
+docker --version
+docker compose version
 ```
 
-When both services are healthy, open [http://localhost:8080](http://localhost:8080). Database migrations run automatically at startup.
+### 1. Download the Docker Compose configuration
 
-To stop the services while retaining indexed data and quiz history:
+Download the following files from this repository or from GitHub:
 
-```powershell
+```text
+compose.yaml
+.env.example
+```
+
+You do not need to clone the complete source code repository.
+
+### 2. Configure environment variables
+
+Create a `.env` file from the provided example in GitHub and add you OpenAI API key. You can also change the PostgreSQL credentials if you want.
+
+### 3. Start the application
+
+From the directory containing `compose.yaml`, run:
+
+```bash
+docker compose up -d
+```
+
+Docker Compose will automatically:
+
+* Pull the application image from Docker Hub
+* Pull the PostgreSQL image
+* Create the required Docker network
+* Create the PostgreSQL persistent volume
+* Configure the required environment variables
+* Start PostgreSQL
+* Start the application once the database is ready
+
+No manual database setup is required.
+
+### 4. Access the application
+
+Once the containers are running, open:
+
+```text
+http://localhost:8080
+```
+
+### Check container status
+
+Run:
+
+```bash
+docker compose ps
+```
+
+You can also view the containers from Docker Desktop. The application and PostgreSQL containers should appear grouped under the same Compose project.
+
+### View application logs
+
+To view all logs:
+
+```bash
+docker compose logs -f
+```
+
+To view only the application logs:
+
+```bash
+docker compose logs -f app
+```
+
+To view only the PostgreSQL logs:
+
+```bash
+docker compose logs -f db
+```
+
+Press `Ctrl+C` to stop following the logs.
+
+### Stop the application
+
+To stop and remove the containers:
+
+```bash
 docker compose down
 ```
 
-The data is stored in the named Docker volume `notebridge-data`. Removing that volume permanently removes the application's local database data.
+The PostgreSQL data is stored in a Docker volume and will remain available the next time you start the application.
 
-## Run locally
+Start it again with:
 
-Start a PostgreSQL database with pgvector, create the configured database and user, and set the connection and OpenAI variables. The application reads these optional datasource overrides:
-
-```powershell
-$env:SPRING_DATASOURCE_URL = "jdbc:postgresql://localhost:5432/notebridge"
-$env:SPRING_DATASOURCE_USERNAME = "notebridge"
-$env:SPRING_DATASOURCE_PASSWORD = "change-me-for-local-use"
-$env:OPENAI_API_KEY = "your-api-key"
+```bash
+docker compose up -d
 ```
 
-Then run the Maven wrapper:
+### Reset the database
 
-```powershell
-.\mvnw.cmd spring-boot:run
+If you want to completely remove the application containers **and all PostgreSQL data**, run:
+
+```bash
+docker compose down -v
 ```
 
-On macOS or Linux, use `./mvnw spring-boot:run` instead. The app is available at [http://localhost:8080](http://localhost:8080).
+Then start the application again:
+
+```bash
+docker compose up -d
+```
+
+> **Warning:** `docker compose down -v` permanently deletes the PostgreSQL Docker volume and all data stored in it.
+
+### Update to the latest image
+
+If a newer Docker image is available, run:
+
+```bash
+docker compose pull
+docker compose up -d
+```
+
+Docker Compose will download the updated image and recreate the required containers.
+
 
 ## How to use it
 
