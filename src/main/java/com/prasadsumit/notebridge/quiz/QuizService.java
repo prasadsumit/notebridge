@@ -13,13 +13,17 @@ import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 
 import java.time.Instant;
-import java.security.SecureRandom;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 public class QuizService {
-    public record CompletedQuiz(Quiz quiz, QuizAttempt attempt) { }
-    private record ShuffledOptions(List<String> options, Set<Integer> correctIndexes) { }
+    public record CompletedQuiz(Quiz quiz, QuizAttempt attempt) {
+    }
+
+    private record ShuffledOptions(List<String> options, Set<Integer> correctIndexes) {
+    }
+
     private final NoteChunkRepository chunks;
     private final QuizRepository quizzes;
     private final QuizAttemptRepository attempts;
@@ -46,27 +50,42 @@ public class QuizService {
             case HARD -> 30;
         };
         Set<Long> retrievedIds = vectorStore.similaritySearch(SearchRequest.builder().query(request.topicOrDefault()).topK(limit).similarityThreshold(0.0).build()).stream()
-                .map(Document::getMetadata).map(metadata -> metadata.get("chunkId")).filter(Number.class::isInstance).map(Number.class::cast).map(Number::longValue).collect(java.util.stream.Collectors.toSet());
+                .map(Document::getMetadata)
+                .map(metadata -> metadata.get("chunkId"))
+                .filter(Number.class::isInstance)
+                .map(Number.class::cast)
+                .map(Number::longValue)
+                .collect(java.util.stream.Collectors.toSet());
+
         List<NoteChunk> eligible = chunks.findByExcludedFalse();
-        List<AiProvider.SourceExcerpt> excerpts = eligible.stream().filter(chunk -> retrievedIds.isEmpty() || retrievedIds.contains(chunk.getId())).limit(limit)
-                .map(chunk -> new AiProvider.SourceExcerpt(chunk.getId(), chunk.getDocument().getRelativePath() + " (section " + (chunk.getSequenceNumber() + 1) + ")", chunk.getContent())).toList();
+
+        List<AiProvider.SourceExcerpt> excerpts = eligible.stream()
+                .filter(chunk -> retrievedIds.isEmpty() || retrievedIds.contains(chunk.getId()))
+                .limit(limit)
+                .map(chunk -> new AiProvider.SourceExcerpt(chunk.getId(), chunk.getDocument().getRelativePath() + " (section " + (chunk.getSequenceNumber() + 1) + ")", chunk.getContent()))
+                .toList();
+
         if (excerpts.isEmpty())
             throw new IllegalStateException("No eligible note excerpts are available. Sync your notes or resolve the review queue first.");
+
         GeneratedQuiz generated = provider.generateQuiz(request, excerpts);
+
         validator.validate(generated, request);
+
         Quiz quiz = new Quiz();
         quiz.setTitle(generated.title() == null || generated.title().isBlank() ? "Practice quiz" : generated.title());
         quiz.setDifficulty(request.difficulty());
         quiz.setQuestionType(request.questionType());
         quiz.setTimeLimitMinutes(request.timeLimitMinutes());
         quiz.setCreatedAt(Instant.now());
+
         for (int i = 0; i < generated.questions().size(); i++) {
             GeneratedQuiz.GeneratedQuestion source = generated.questions().get(i);
             QuizQuestion target = new QuizQuestion();
             target.setQuiz(quiz);
             target.setPosition(i + 1);
             target.setPrompt(source.prompt());
-            ShuffledOptions shuffled = shuffleOptions(source, i);
+            ShuffledOptions shuffled = shuffleOptions(source);
             target.setOptions(shuffled.options());
             target.setCorrectOptionIndexes(shuffled.correctIndexes());
             target.setExplanation(source.explanation());
@@ -77,15 +96,10 @@ public class QuizService {
         return quizzes.save(quiz);
     }
 
-    private ShuffledOptions shuffleOptions(GeneratedQuiz.GeneratedQuestion question, int questionIndex) {
+    private ShuffledOptions shuffleOptions(GeneratedQuiz.GeneratedQuestion question) {
         List<Integer> originalIndexes = new ArrayList<>();
         for (int index = 0; index < question.options().size(); index++) originalIndexes.add(index);
-        Collections.shuffle(originalIndexes, new SecureRandom());
-        if (question.correctOptionIndexes().size() == 1) {
-            int correctOriginalIndex = question.correctOptionIndexes().getFirst();
-            originalIndexes.remove(Integer.valueOf(correctOriginalIndex));
-            originalIndexes.add(questionIndex % question.options().size(), correctOriginalIndex);
-        }
+        Collections.shuffle(originalIndexes, ThreadLocalRandom.current());
 
         List<String> shuffledOptions = new ArrayList<>();
         Set<Integer> correctIndexes = new HashSet<>();
@@ -103,7 +117,8 @@ public class QuizService {
 
     public List<CompletedQuiz> history() {
         return attempts.findAllByOrderBySubmittedAtDesc().stream()
-                .map(attempt -> new CompletedQuiz(get(attempt.getQuiz().getId()), attempt)).toList();
+                .map(attempt -> new CompletedQuiz(get(attempt.getQuiz().getId()), attempt))
+                .toList();
     }
 
     public QuizAttempt getAttempt(long id) {
@@ -117,7 +132,8 @@ public class QuizService {
     public Map<Long, Set<Integer>> selectedAnswers(QuizAttempt attempt) {
         try {
             Map<String, List<Integer>> persisted = objectMapper.readValue(attempt.getSelectedAnswersJson(),
-                    new com.fasterxml.jackson.core.type.TypeReference<>() { });
+                    new com.fasterxml.jackson.core.type.TypeReference<>() {
+                    });
             Map<Long, Set<Integer>> selected = new HashMap<>();
             persisted.forEach((questionId, answers) -> selected.put(Long.valueOf(questionId), new HashSet<>(answers)));
             return selected;
