@@ -9,7 +9,7 @@ Your original note files are not edited. The application stores its index, revie
 
 ## What it does
 
-- Imports Markdown, plain-text, PDF, and DOCX files from a selected local folder.
+- Imports Markdown, plain-text, PDF, DOCX, and EPUB files from a selected local folder.
 - Extracts text, splits it into chunks, and stores embeddings in PostgreSQL with pgvector for topic-based retrieval.
 - Detects potential factual conflicts after a sync and keeps flagged chunks out of quiz generation until they are reviewed.
 - Generates evidence-grounded multiple-choice or multi-select quizzes, with citations and explanations.
@@ -227,4 +227,3 @@ Run the test suite with:
 ## Health endpoint
 
 Spring Boot Actuator exposes health information at [http://localhost:8080/actuator/health](http://localhost:8080/actuator/health). This is also used by the Docker Compose health check.
-

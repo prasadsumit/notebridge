@@ -5,10 +5,10 @@
 <div class="page-content">
 <section class="page-header"><p class="eyebrow"></p>
     <h1>Sources</h1>
-    <p class="lede">Add one or more Markdown, text, PDF, or DOCX files. Your original files are only read;
+    <p class="lede">Add one or more Markdown, text, PDF, DOCX, or EPUB files. Your original files are only read;
         Notebridge never changes them.</p>
     <form id="folder-sync-form" th:action="@{/sources/sync}" method="post" enctype="multipart/form-data">
-        <input id="notes-files" name="files" type="file" accept=".md,.txt,.pdf,.docx,text/markdown,text/plain,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" multiple hidden>
+        <input id="notes-files" name="files" type="file" accept=".md,.txt,.pdf,.docx,.epub,text/markdown,text/plain,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/epub+zip" multiple hidden>
         <div class="source-dropzone" id="source-dropzone" role="button" tabindex="0" aria-describedby="source-picker-hint">
             <strong>Drop files here</strong>
             <span id="source-picker-hint">or choose files from your computer</span>
