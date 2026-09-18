@@ -113,6 +113,18 @@ public class NoteSyncService {
 
     public List<IndexedDocument> documents() { return documents.findAll().stream().sorted(Comparator.comparing(IndexedDocument::getRelativePath)).toList(); }
 
+    @Transactional
+    public String remove(long documentId) {
+        IndexedDocument document = documents.findById(documentId)
+                .orElseThrow(() -> new NoSuchElementException("The selected source no longer exists."));
+        conflicts.deleteByChunkDocument(document);
+        deleteVectors(document);
+        chunks.deleteByDocument(document);
+        documents.delete(document);
+        logger.info("source-remove file={} outcome=removed", document.getRelativePath());
+        return document.getRelativePath();
+    }
+
     public record SelectedFile(String relativePath, Instant modifiedAt, MultipartFile file) {}
 
     private IndexingMetrics indexChunks(IndexedDocument document, String content) {

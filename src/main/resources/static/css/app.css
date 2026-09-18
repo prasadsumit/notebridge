@@ -541,6 +541,35 @@ color:var(--text-muted);
 font-size:var(--font-xs)}
 .source-list>li>span {
 text-align:right}
+.source-details {
+min-width:0;
+flex:1}
+.source-details strong {
+display:block;
+overflow-wrap:anywhere}
+.remove-source {
+flex:0 0 auto}
+.source-delete {
+display:grid;
+place-items:center;
+width:34px;
+height:34px;
+padding:0;
+border:1px solid transparent;
+border-radius:var(--radius-md);
+background:transparent;
+color:var(--text-muted);
+transition:background var(--transition-fast),border-color var(--transition-fast),color var(--transition-fast)}
+.source-delete:hover {
+border-color:rgb(180 35 24 / 24%);
+background:rgb(180 35 24 / 8%);
+color:var(--danger)}
+.source-delete:focus-visible {
+outline:3px solid rgb(180 35 24 / 22%);
+outline-offset:2px}
+.source-delete svg {
+width:18px;
+height:18px}
 .source-list.history-list {
 margin-top:0}
 .history-list strong {

@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 
 @Controller
@@ -69,6 +70,17 @@ public class StudyController {
             SyncResult result = syncService.sync(selectedFiles);
             flash.addFlashAttribute("message", "Upload complete: %d added, %d updated, %d unchanged.".formatted(result.added(), result.updated(), result.skipped()));
         } catch (IOException | IllegalArgumentException exception) {
+            flash.addFlashAttribute("error", exception.getMessage());
+        }
+        return "redirect:/sources";
+    }
+
+    @PostMapping("/sources/{id}/delete")
+    String removeSource(@PathVariable long id, RedirectAttributes flash) {
+        try {
+            String path = syncService.remove(id);
+            flash.addFlashAttribute("message", "Source removed: " + path + ".");
+        } catch (NoSuchElementException exception) {
             flash.addFlashAttribute("error", exception.getMessage());
         }
         return "redirect:/sources";

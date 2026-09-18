@@ -30,8 +30,19 @@
     <div class="card-heading"><div><h2>Indexed files</h2><p>Files available to generate quizzes.</p></div><span class="count-badge" th:text="${#lists.size(documents)} + ' files'"></span></div>
     <p th:if="${#lists.isEmpty(documents)}" class="empty">No notes yet. Add files to create your first source set.</p>
     <ul class="source-list" th:unless="${#lists.isEmpty(documents)}">
-        <li th:each="document : ${documents}"><strong th:text="${document.relativePath}"></strong><span
-                th:text="${document.format + ' · updated ' + #temporals.format(document.indexedAt, 'MMM d, yyyy')}"></span>
+        <li th:each="document : ${documents}">
+            <div class="source-details"><strong th:text="${document.relativePath}"></strong><span
+                    th:text="${document.format + ' · updated ' + #temporals.format(document.indexedAt, 'MMM d, yyyy')}"></span></div>
+            <form class="remove-source" th:action="@{/sources/{id}/delete(id=${document.id})}" method="post"
+                  onsubmit="return window.confirm('Remove this source? This will permanently delete it and all of its vector embeddings.');">
+                <button class="source-delete" type="submit" th:attr="aria-label=${'Remove ' + document.relativePath}"
+                        title="Remove source">
+                    <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                         stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 10v6M14 10v6"></path>
+                    </svg>
+                </button>
+            </form>
         </li>
     </ul>
 </section>
