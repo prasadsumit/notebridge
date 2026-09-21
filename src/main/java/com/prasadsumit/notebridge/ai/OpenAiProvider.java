@@ -13,12 +13,20 @@ class OpenAiProvider implements AiProvider {
 
     @Override
     public GeneratedQuiz generateQuiz(QuizRequest request, List<SourceExcerpt> excerpts) {
-        String evidence = excerpts.stream().map(excerpt -> "[" + excerpt.citation() + "]\n" + excerpt.content())
+        String evidence = excerpts.stream().map(excerpt -> "[Excerpt ID " + excerpt.chunkId() + " | " + excerpt.citation() + "]\n" + excerpt.content())
                 .reduce("", (left, right) -> left + "\n\n" + right);
         String prompt = """
                 Create an evidence-grounded practice quiz. Use only the supplied note excerpts as the basis for correct answers.
-                A question must cite one or more supplied file citations. Do not invent citations. Additional learning context is optional,
-                must be clearly separate, and cannot be needed to answer correctly. %s question format is requested.
+
+                For every question, return one or more citations. Each citation must contain the chunkId of an excerpt
+                that directly supports the correct answer, plus a short searchHint of about 5-12 words
+                describing the relevant passage. The hint should help a reader find and review that passage in the
+                original file. Prefer an exact quotation.
+                Do not invent source names, headings, page numbers, excerpt IDs, or unsupported details. The app
+                supplies the file, any recognizable heading, and excerpt position from each chunkId. Do not make
+                assumptions beyond the excerpts.
+
+                Additional learning context is optional, must be clearly separate, and cannot be needed to answer correctly. %s question format is requested.
                 Difficulty: %s. Question count: %d. Topic: %s.
 
                 Make every question and every answer option descriptive at every difficulty. Include the

@@ -19,7 +19,10 @@
         <p><strong>Explanation</strong><br><span th:text="${question.explanation}"></span></p>
         <p th:if="${question.additionalLearningContext}"><strong>Additional learning context</strong><br><span
                 th:text="${question.additionalLearningContext}"></span></p>
-        <p class="muted" th:text="${'From your notes: ' + #strings.listJoin(question.citations, ', ')}"></p></article>
+        <div class="citation-block" th:unless="${#lists.isEmpty(question.citations)}">
+            <h3>Review in your sources</h3>
+            <ul><li th:each="citation : ${question.citations}" th:text="${citation}"></li></ul>
+        </div></article>
 </section>
 </div>
 </body>

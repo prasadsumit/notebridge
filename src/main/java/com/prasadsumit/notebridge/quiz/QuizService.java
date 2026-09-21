@@ -79,7 +79,7 @@ public class QuizService {
         List<AiProvider.SourceExcerpt> excerpts = eligible.stream()
                 .filter(chunk -> retrievedIds.isEmpty() || retrievedIds.contains(chunk.getId()))
                 .limit(limit)
-                .map(chunk -> new AiProvider.SourceExcerpt(chunk.getId(), chunk.getDocument().getRelativePath() + " (section " + (chunk.getSequenceNumber() + 1) + ")", chunk.getContent()))
+                .map(chunk -> new AiProvider.SourceExcerpt(chunk.getId(), CitationLocator.describe(chunk), chunk.getContent()))
                 .toList();
 
         if (excerpts.isEmpty())
@@ -87,7 +87,9 @@ public class QuizService {
 
         GeneratedQuiz generated = provider.generateQuiz(request, excerpts);
 
-        validator.validate(generated, request);
+        validator.validate(generated, request, excerpts);
+        Map<Long, AiProvider.SourceExcerpt> excerptsById = new HashMap<>();
+        excerpts.forEach(excerpt -> excerptsById.put(excerpt.chunkId(), excerpt));
 
         Quiz quiz = new Quiz();
         quiz.setTitle(generated.title() == null || generated.title().isBlank() ? "Practice quiz" : generated.title());
@@ -107,7 +109,9 @@ public class QuizService {
             target.setCorrectOptionIndexes(shuffled.correctIndexes());
             target.setExplanation(source.explanation());
             target.setAdditionalLearningContext(source.additionalLearningContext());
-            target.setCitations(new ArrayList<>(source.citations()));
+            target.setCitations(source.citations().stream()
+                    .map(citation -> excerptsById.get(citation.chunkId()).citation() + " — " + citation.searchHint().trim())
+                    .toList());
             quiz.getQuestions().add(target);
         }
         return quizzes.save(quiz);

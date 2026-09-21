@@ -44,11 +44,12 @@ class QuizServiceSourceSelectionTests {
             assertEquals(11L, excerpts.getFirst().chunkId());
             return new GeneratedQuiz("Quiz", List.of(new GeneratedQuiz.GeneratedQuestion(
                     "Question?", List.of("One", "Two"), List.of(0), "Explanation", null,
-                    List.of(excerpts.getFirst().citation()))));
+                    List.of(new GeneratedQuiz.GeneratedCitation(excerpts.getFirst().chunkId(), "selected topic")))));
         });
         when(quizzes.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        service.generate(request(List.of(1L)));
+        var quiz = service.generate(request(List.of(1L)));
+        assertEquals(List.of("selected.md (excerpt 1) — selected topic"), quiz.getQuestions().getFirst().getCitations());
 
         var search = org.mockito.ArgumentCaptor.forClass(SearchRequest.class);
         verify(vectorStore).similaritySearch(search.capture());

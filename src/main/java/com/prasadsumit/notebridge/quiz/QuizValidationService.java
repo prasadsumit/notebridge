@@ -1,17 +1,21 @@
 package com.prasadsumit.notebridge.quiz;
 
 import com.prasadsumit.notebridge.ai.GeneratedQuiz;
+import com.prasadsumit.notebridge.ai.AiProvider;
 import com.prasadsumit.notebridge.model.QuestionType;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Service
 public class QuizValidationService {
-    public void validate(GeneratedQuiz quiz, QuizRequest request) {
+    public void validate(GeneratedQuiz quiz, QuizRequest request, List<AiProvider.SourceExcerpt> excerpts) {
         if (quiz == null || quiz.questions() == null || quiz.questions().size() != request.questionCount())
             throw new IllegalArgumentException("The provider did not return the requested number of questions.");
+        Set<Long> suppliedChunkIds = new HashSet<>();
+        excerpts.forEach(excerpt -> suppliedChunkIds.add(excerpt.chunkId()));
         Set<String> prompts = new HashSet<>();
         for (GeneratedQuiz.GeneratedQuestion question : quiz.questions()) {
             if (question.prompt() == null || question.prompt().isBlank() || !prompts.add(question.prompt().trim().toLowerCase()))
@@ -24,6 +28,11 @@ public class QuizValidationService {
                 throw new IllegalArgumentException("A question has an invalid answer index.");
             if (question.citations() == null || question.citations().isEmpty())
                 throw new IllegalArgumentException("Every question needs a note citation.");
+            for (GeneratedQuiz.GeneratedCitation citation : question.citations()) {
+                if (citation == null || citation.chunkId() == null || !suppliedChunkIds.contains(citation.chunkId())
+                        || citation.searchHint() == null || citation.searchHint().isBlank() || citation.searchHint().length() > 160)
+                    throw new IllegalArgumentException("A question has an invalid source citation.");
+            }
         }
     }
 }

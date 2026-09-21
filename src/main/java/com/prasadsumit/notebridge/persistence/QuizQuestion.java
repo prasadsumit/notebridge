@@ -46,5 +46,6 @@ public class QuizQuestion {
     private String additionalLearningContext;
 
     @ElementCollection(fetch = FetchType.EAGER)
+    @Column(name = "citations", columnDefinition = "text")
     private List<String> citations = new ArrayList<>();
 }
