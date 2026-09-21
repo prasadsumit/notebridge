@@ -599,16 +599,86 @@ gap:6px;
 color:var(--text-primary);
 font-size:var(--font-sm);
 font-weight:600}
+.field-label {
+display:block;
+margin-bottom:6px;
+font-size:var(--font-sm);
+font-weight:600}
+.form-dropdown {
+position:relative}
+.form-dropdown summary {
+display:flex;
+align-items:center;
+min-height:38px;
+padding:8px 36px 8px 10px;
+border:1px solid var(--border-strong);
+border-radius:var(--radius-md);
+background:var(--bg-primary);
+cursor:pointer;
+list-style:none;
+font-size:var(--font-md);
+font-weight:400}
+.form-dropdown summary::-webkit-details-marker {
+display:none}
+.form-dropdown summary span {
+min-width:0;
+overflow:hidden;
+text-overflow:ellipsis;
+white-space:nowrap}
+.dropdown-options {
+position:absolute;
+z-index:5;
+top:calc(100% + 4px);
+left:0;
+right:0;
+max-height:240px;
+overflow:auto;
+padding:4px;
+border:1px solid var(--border-strong);
+border-radius:var(--radius-md);
+background:var(--bg-primary);
+box-shadow:var(--shadow-popover)}
+.dropdown-options label {
+display:flex;
+align-items:center;
+gap:10px;
+padding:8px;
+border-radius:var(--radius-sm);
+font-weight:400;
+cursor:pointer}
+.dropdown-options label:hover {
+background:var(--bg-hover)}
+.dropdown-options input {
+flex:0 0 auto;
+width:16px;
+min-height:16px;
+margin:0;
+accent-color:var(--accent)}
+.dropdown-options span {
+overflow-wrap:anywhere}
+.field-hint {
+margin:6px 0 0;
+color:var(--text-secondary);
+font-size:var(--font-xs)}
 .setup-form .button {
 justify-self:start;
 margin-top:var(--space-2)}
+.setup-form input {
+font-weight:400}
+.setup-form input::placeholder {
+font-weight:400}
+.form-dropdown summary {
+background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='m4 6 4 4 4-4' stroke='%23172033' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+background-repeat:no-repeat;
+background-position:right 11px center;
+background-size:16px 16px}
 input,select {
 width:100%;
 min-height:38px;
 padding:8px 10px;
 border:1px solid var(--border-strong);
 border-radius:var(--radius-md);
-background:var(--bg-primary);
+background-color:var(--bg-primary);
 color:var(--text-primary);
 font-size:var(--font-md)}
 input::placeholder {

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.ai.vectorstore.filter.FilterExpressionBuilder;
 
 import java.time.Instant;
 import java.util.*;
@@ -25,6 +26,7 @@ public class QuizService {
     }
 
     private final NoteChunkRepository chunks;
+    private final IndexedDocumentRepository documents;
     private final QuizRepository quizzes;
     private final QuizAttemptRepository attempts;
     private final AiProvider provider;
@@ -32,8 +34,9 @@ public class QuizService {
     private final ObjectMapper objectMapper;
     private final VectorStore vectorStore;
 
-    public QuizService(NoteChunkRepository chunks, QuizRepository quizzes, QuizAttemptRepository attempts, AiProvider provider, QuizValidationService validator, ObjectMapper objectMapper, VectorStore vectorStore) {
+    public QuizService(NoteChunkRepository chunks, IndexedDocumentRepository documents, QuizRepository quizzes, QuizAttemptRepository attempts, AiProvider provider, QuizValidationService validator, ObjectMapper objectMapper, VectorStore vectorStore) {
         this.chunks = chunks;
+        this.documents = documents;
         this.quizzes = quizzes;
         this.attempts = attempts;
         this.provider = provider;
@@ -44,20 +47,34 @@ public class QuizService {
 
     @Transactional
     public Quiz generate(QuizRequest request) {
+        Set<Long> selectedSourceIds = request.sourceIds() == null ? Set.of() : new HashSet<>(request.sourceIds());
+        if (selectedSourceIds.isEmpty() || selectedSourceIds.contains(null))
+            throw new IllegalArgumentException("Select at least one source for the quiz.");
+        List<IndexedDocument> selectedSources = documents.findAllById(selectedSourceIds);
+        if (selectedSources.size() != selectedSourceIds.size())
+            throw new IllegalArgumentException("A selected source is no longer available. Choose your sources again.");
+
         int limit = switch (request.difficulty()) {
             case EASY -> 8;
             case MEDIUM -> 16;
             case HARD -> 30;
         };
-        Set<Long> retrievedIds = vectorStore.similaritySearch(SearchRequest.builder().query(request.topicOrDefault()).topK(limit).similarityThreshold(0.0).build()).stream()
+        List<NoteChunk> eligible = chunks.findByExcludedFalse().stream()
+                .filter(chunk -> selectedSourceIds.contains(chunk.getDocument().getId()))
+                .toList();
+        if (eligible.isEmpty())
+            throw new IllegalStateException("No eligible note excerpts are available in the selected sources.");
+
+        var sourcePaths = selectedSources.stream().map(IndexedDocument::getRelativePath).map(path -> (Object) path).toList();
+        var sourceFilter = new FilterExpressionBuilder().in("path", sourcePaths).build();
+        Set<Long> retrievedIds = vectorStore.similaritySearch(SearchRequest.builder().query(request.topicOrDefault())
+                        .topK(limit).similarityThreshold(0.0).filterExpression(sourceFilter).build()).stream()
                 .map(Document::getMetadata)
                 .map(metadata -> metadata.get("chunkId"))
                 .filter(Number.class::isInstance)
                 .map(Number.class::cast)
                 .map(Number::longValue)
                 .collect(java.util.stream.Collectors.toSet());
-
-        List<NoteChunk> eligible = chunks.findByExcludedFalse();
 
         List<AiProvider.SourceExcerpt> excerpts = eligible.stream()
                 .filter(chunk -> retrievedIds.isEmpty() || retrievedIds.contains(chunk.getId()))

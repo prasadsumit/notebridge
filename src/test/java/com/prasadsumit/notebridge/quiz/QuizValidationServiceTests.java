@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class QuizValidationServiceTests {
     private final QuizValidationService validator = new QuizValidationService();
-    private final QuizRequest request = new QuizRequest(Difficulty.EASY, QuestionType.MULTIPLE_CHOICE, 1, "", null);
+    private final QuizRequest request = new QuizRequest(Difficulty.EASY, QuestionType.MULTIPLE_CHOICE, 1, "", null, List.of(1L));
     @Test void acceptsGroundedSingleAnswerQuestion() { assertDoesNotThrow(() -> validator.validate(new GeneratedQuiz("Quiz", List.of(question(List.of(0), List.of("note.md")))), request)); }
     @Test void rejectsQuestionWithoutCitation() { assertThrows(IllegalArgumentException.class, () -> validator.validate(new GeneratedQuiz("Quiz", List.of(question(List.of(0), List.of()))), request)); }
     @Test void rejectsMultipleCorrectAnswersForMcq() { assertThrows(IllegalArgumentException.class, () -> validator.validate(new GeneratedQuiz("Quiz", List.of(question(List.of(0, 1), List.of("note.md")))), request)); }

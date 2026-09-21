@@ -106,7 +106,10 @@ public class StudyController {
 
     @GetMapping("/quizzes/new")
     String newQuiz(Model model) {
-        model.addAttribute("request", new QuizRequest(Difficulty.MEDIUM, QuestionType.MULTIPLE_CHOICE, 10, "", null));
+        var documents = syncServiceDocuments();
+        model.addAttribute("request", new QuizRequest(Difficulty.MEDIUM, QuestionType.MULTIPLE_CHOICE, 10, "", null,
+                documents.stream().map(document -> document.getId()).toList()));
+        model.addAttribute("documents", documents);
         model.addAttribute("difficulties", Difficulty.values());
         model.addAttribute("types", QuestionType.values());
         return "quiz-setup";

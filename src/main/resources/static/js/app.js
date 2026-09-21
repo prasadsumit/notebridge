@@ -51,6 +51,38 @@
   });
 
   const sourceInput = document.getElementById('notes-files');
+  const formDropdowns = [...document.querySelectorAll('.form-dropdown')];
+  const closeOtherDropdowns = current => formDropdowns.forEach(dropdown => {
+    if (dropdown !== current) dropdown.open = false;
+  });
+  document.addEventListener('click', event => closeOtherDropdowns(event.target.closest('.form-dropdown')));
+  formDropdowns.forEach(dropdown => dropdown.addEventListener('toggle', () => {
+    if (dropdown.open) closeOtherDropdowns(dropdown);
+  }));
+  document.addEventListener('keydown', event => {
+    if (event.key !== 'Escape') return;
+    const openDropdown = formDropdowns.find(dropdown => dropdown.open);
+    if (openDropdown) {
+      openDropdown.open = false;
+      openDropdown.querySelector('summary')?.focus();
+    }
+  });
+  document.querySelectorAll('.single-select-dropdown').forEach(dropdown => {
+    dropdown.querySelectorAll('input[type="radio"]').forEach(choice => choice.addEventListener('change', () => {
+      dropdown.querySelector('summary span').textContent = choice.closest('label').querySelector('span').textContent.trim();
+      dropdown.open = false;
+    }));
+  });
+  const quizSourceChoices = [...document.querySelectorAll('.source-dropdown input[name="sourceIds"]')];
+  const sourceSelectionSummary = document.getElementById('source-selection-summary');
+  const updateSourceSelection = () => {
+    if (!sourceSelectionSummary) return;
+    const selected = quizSourceChoices.filter(choice => choice.checked);
+    const firstName = selected[0]?.closest('label')?.querySelector('span')?.textContent?.trim();
+    sourceSelectionSummary.textContent = selected.length === 0 ? 'Select sources'
+      : `${firstName}${selected.length > 1 ? ` +${selected.length - 1}` : ''}`;
+  };
+  quizSourceChoices.forEach(choice => choice.addEventListener('change', updateSourceSelection));
   const syncForm = document.getElementById('folder-sync-form');
   const chooseButton = document.getElementById('choose-files');
   const dropzone = document.getElementById('source-dropzone');
