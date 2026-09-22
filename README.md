@@ -227,3 +227,7 @@ Run the test suite with:
 ## Health endpoint
 
 Spring Boot Actuator exposes health information at [http://localhost:8080/actuator/health](http://localhost:8080/actuator/health). This is also used by the Docker Compose health check.
+
+## License
+
+Notebridge is licensed under the [GNU Affero General Public License v3.0](LICENSE) (`AGPL-3.0-only`).
