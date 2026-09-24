@@ -14,9 +14,11 @@ public class QuizValidationService {
     public void validate(GeneratedQuiz quiz, QuizRequest request, List<AiProvider.SourceExcerpt> excerpts) {
         if (quiz == null || quiz.questions() == null || quiz.questions().size() != request.questionCount())
             throw new IllegalArgumentException("The provider did not return the requested number of questions.");
+
         Set<Long> suppliedChunkIds = new HashSet<>();
         excerpts.forEach(excerpt -> suppliedChunkIds.add(excerpt.chunkId()));
         Set<String> prompts = new HashSet<>();
+
         for (GeneratedQuiz.GeneratedQuestion question : quiz.questions()) {
             if (question.prompt() == null || question.prompt().isBlank() || !prompts.add(question.prompt().trim().toLowerCase()))
                 throw new IllegalArgumentException("The provider returned an invalid or duplicate question.");

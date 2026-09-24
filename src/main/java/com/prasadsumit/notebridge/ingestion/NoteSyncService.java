@@ -111,7 +111,9 @@ public class NoteSyncService {
         }
     }
 
-    public List<IndexedDocument> documents() { return documents.findAll().stream().sorted(Comparator.comparing(IndexedDocument::getRelativePath)).toList(); }
+    public List<IndexedDocument> documents() {
+        return documents.findAll().stream().sorted(Comparator.comparing(IndexedDocument::getRelativePath)).toList();
+    }
 
     @Transactional
     public String remove(long documentId) {
@@ -125,18 +127,25 @@ public class NoteSyncService {
         return document.getRelativePath();
     }
 
-    public record SelectedFile(String relativePath, Instant modifiedAt, MultipartFile file) {}
+    public record SelectedFile(String relativePath, Instant modifiedAt, MultipartFile file) {
+    }
 
     private IndexingMetrics indexChunks(IndexedDocument document, String content) {
         long indexingStartedAt = System.nanoTime();
         long chunkSaveMs = 0;
         long embeddingMs = 0;
         int sequence = 0;
-        for (int from = 0; from < content.length();) {
+        for (int from = 0; from < content.length(); ) {
             int to = Math.min(content.length(), from + CHUNK_SIZE);
-            if (to < content.length()) { int boundary = content.lastIndexOf('\n', to); if (boundary > from + CHUNK_SIZE / 2) to = boundary; }
+            if (to < content.length()) {
+                int boundary = content.lastIndexOf('\n', to);
+                if (boundary > from + CHUNK_SIZE / 2) to = boundary;
+            }
             NoteChunk chunk = new NoteChunk();
-            chunk.setDocument(document); chunk.setSequenceNumber(sequence++); chunk.setContent(content.substring(from, to).trim()); chunk.setExcluded(false);
+            chunk.setDocument(document);
+            chunk.setSequenceNumber(sequence++);
+            chunk.setContent(content.substring(from, to).trim());
+            chunk.setExcluded(false);
             long chunkSaveStartedAt = System.nanoTime();
             chunk = chunks.save(chunk);
             chunkSaveMs += elapsedMillis(chunkSaveStartedAt);
@@ -155,18 +164,26 @@ public class NoteSyncService {
         if (!ids.isEmpty()) vectorStore.delete(ids);
     }
 
-    private static String extension(String path) { return path.substring(path.lastIndexOf('.') + 1).toLowerCase(Locale.ROOT); }
+    private static String extension(String path) {
+        return path.substring(path.lastIndexOf('.') + 1).toLowerCase(Locale.ROOT);
+    }
+
     private static String vectorId(Long chunkId) {
         return UUID.nameUUIDFromBytes(("notebridge-chunk-" + chunkId).getBytes(StandardCharsets.UTF_8)).toString();
     }
+
     private static String sha256(String value) {
-        try { return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8))); }
-        catch (NoSuchAlgorithmException exception) { throw new IllegalStateException(exception); }
+        try {
+            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8)));
+        } catch (NoSuchAlgorithmException exception) {
+            throw new IllegalStateException(exception);
+        }
     }
 
     private static long elapsedMillis(long startedAt) {
         return TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startedAt);
     }
 
-    private record IndexingMetrics(int chunkCount, long chunkSaveMs, long embeddingMs, long totalMs) { }
+    private record IndexingMetrics(int chunkCount, long chunkSaveMs, long embeddingMs, long totalMs) {
+    }
 }

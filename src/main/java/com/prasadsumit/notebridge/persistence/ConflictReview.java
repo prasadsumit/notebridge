@@ -15,21 +15,28 @@ import java.time.Instant;
 @Setter
 @NoArgsConstructor
 public class ConflictReview {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @ManyToOne(optional = false, fetch = FetchType.EAGER)
     private NoteChunk chunk;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ConflictStatus status = ConflictStatus.OPEN;
+
     @Column(nullable = false)
     private String conflictType;
+
     @Column(nullable = false)
     private Integer confidence;
+
     @JdbcTypeCode(SqlTypes.LONGVARCHAR)
     @Column(nullable = false)
     private String rationale;
+
     @Column(nullable = false)
     private Instant createdAt;
 }

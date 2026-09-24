@@ -24,19 +24,24 @@
             <a th:href="@{/quizzes/new}" data-route="/quizzes">New quiz</a>
             <a th:href="@{/history}" data-route="/history">History</a>
         </nav>
-        <div class="sidebar-footer"><span class="status-dot"></span><span>Local-first workspace</span><small>Your notes stay read-only.</small></div>
+        <div class="sidebar-footer"><span class="status-dot"></span><span>Local-first workspace</span><small>Your notes
+            stay read-only.</small></div>
     </aside>
     <div class="app-workspace">
         <header class="topbar">
             <button class="menu-button" type="button" aria-controls="app-sidebar" aria-expanded="false">Menu</button>
             <p class="breadcrumb">Notebridge <span aria-hidden="true">/</span> <span data-page-name>Overview</span></p>
         </header>
-        <main><div th:replace="${content}"></div></main>
+        <main>
+            <div th:replace="${content}"></div>
+        </main>
         <footer>Notebridge runs on your computer. Your notes folder is always read-only.</footer>
     </div>
 </div>
 <div class="loading-overlay" id="loading-overlay" hidden role="status" aria-live="assertive" aria-atomic="true">
-    <div class="loading-panel"><span class="loading-spinner" aria-hidden="true"></span><strong id="loading-overlay-title">Working…</strong><span id="loading-overlay-detail">Please keep this page open.</span></div>
+    <div class="loading-panel"><span class="loading-spinner" aria-hidden="true"></span><strong
+            id="loading-overlay-title">Working…</strong><span
+            id="loading-overlay-detail">Please keep this page open.</span></div>
 </div>
 <script th:src="@{/js/app.js(v=4)}" defer></script>
 </body>

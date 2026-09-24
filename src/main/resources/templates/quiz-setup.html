@@ -3,54 +3,67 @@
 <head><title>New quiz · Notebridge</title></head>
 <body>
 <div class="page-content">
-<section class="page-header"><p class="eyebrow"></p>
-    <h1>Create a quiz</h1>
-    <p class="lede">Every correct answer is grounded in eligible note excerpts. Broader retrieval is used for harder
-        quizzes.</p>
-    <p class="flash error" th:if="${error}" th:text="${error}"></p></section>
-<form th:action="@{/quizzes}" th:object="${request}" method="post" class="setup-form api-form" data-loading-overlay="Generating your quiz" data-loading-detail="This can take a moment while we ground questions in your sources.">
-    <label>Topic <input th:field="*{topic}" placeholder="Optional, for example: Java collections"></label>
-    <div>
-        <span id="difficulty-label" class="field-label">Difficulty</span>
-        <details class="form-dropdown single-select-dropdown">
-            <summary aria-labelledby="difficulty-label difficulty-summary"><span id="difficulty-summary" th:text="${request.difficulty}">MEDIUM</span></summary>
-            <div class="dropdown-options" role="group" aria-labelledby="difficulty-label">
-                <label th:each="difficulty : ${difficulties}">
-                    <input type="radio" name="difficulty" th:value="${difficulty}" th:checked="${difficulty == request.difficulty}">
-                    <span th:text="${difficulty}"></span>
-                </label>
-            </div>
-        </details>
-    </div>
-    <div>
-        <span id="question-type-label" class="field-label">Question type</span>
-        <details class="form-dropdown single-select-dropdown">
-            <summary aria-labelledby="question-type-label question-type-summary"><span id="question-type-summary" th:text="${request.questionType}">MULTIPLE_CHOICE</span></summary>
-            <div class="dropdown-options" role="group" aria-labelledby="question-type-label">
-                <label th:each="type : ${types}">
-                    <input type="radio" name="questionType" th:value="${type}" th:checked="${type == request.questionType}">
-                    <span th:text="${type}"></span>
-                </label>
-            </div>
-        </details>
-    </div>
-    <label>Questions <input th:field="*{questionCount}" type="number" min="1" max="50"></label>
-    <div class="source-picker">
-        <span id="quiz-sources-label" class="field-label">Sources</span>
-        <details class="form-dropdown source-dropdown" th:unless="${#lists.isEmpty(documents)}">
-            <summary aria-labelledby="quiz-sources-label source-selection-summary"><span id="source-selection-summary" th:text="${documents[0].relativePath + (#lists.size(documents) > 1 ? ' +' + (#lists.size(documents) - 1) : '')}">Selected source</span></summary>
-            <div class="dropdown-options" role="group" aria-labelledby="quiz-sources-label">
-                <label th:each="document : ${documents}">
-                    <input type="checkbox" name="sourceIds" th:value="${document.id}" checked>
-                    <span th:text="${document.relativePath}"></span>
-                </label>
-            </div>
-        </details>
-        <p class="field-hint" th:if="${#lists.isEmpty(documents)}">No uploaded sources yet. <a th:href="@{/sources}">Add files</a> to create a quiz.</p>
-        <p class="field-hint" th:unless="${#lists.isEmpty(documents)}">Choose the files to use for this quiz.</p>
-    </div>
-    <button class="button button-primary" type="submit" data-loading-label="Generating quiz…" th:disabled="${#lists.isEmpty(documents)}">Generate quiz <span>→</span></button>
-</form>
+    <section class="page-header"><p class="eyebrow"></p>
+        <h1>Create a quiz</h1>
+        <p class="lede">Every correct answer is grounded in eligible note excerpts. Broader retrieval is used for harder
+            quizzes.</p>
+        <p class="flash error" th:if="${error}" th:text="${error}"></p></section>
+    <form th:action="@{/quizzes}" th:object="${request}" method="post" class="setup-form api-form"
+          data-loading-overlay="Generating your quiz"
+          data-loading-detail="This can take a moment while we ground questions in your sources.">
+        <label>Topic <input th:field="*{topic}" placeholder="Optional, for example: Java collections"></label>
+        <div>
+            <span id="difficulty-label" class="field-label">Difficulty</span>
+            <details class="form-dropdown single-select-dropdown">
+                <summary aria-labelledby="difficulty-label difficulty-summary"><span id="difficulty-summary"
+                                                                                     th:text="${request.difficulty}">MEDIUM</span>
+                </summary>
+                <div class="dropdown-options" role="group" aria-labelledby="difficulty-label">
+                    <label th:each="difficulty : ${difficulties}">
+                        <input type="radio" name="difficulty" th:value="${difficulty}"
+                               th:checked="${difficulty == request.difficulty}">
+                        <span th:text="${difficulty}"></span>
+                    </label>
+                </div>
+            </details>
+        </div>
+        <div>
+            <span id="question-type-label" class="field-label">Question type</span>
+            <details class="form-dropdown single-select-dropdown">
+                <summary aria-labelledby="question-type-label question-type-summary"><span id="question-type-summary"
+                                                                                           th:text="${request.questionType}">MULTIPLE_CHOICE</span>
+                </summary>
+                <div class="dropdown-options" role="group" aria-labelledby="question-type-label">
+                    <label th:each="type : ${types}">
+                        <input type="radio" name="questionType" th:value="${type}"
+                               th:checked="${type == request.questionType}">
+                        <span th:text="${type}"></span>
+                    </label>
+                </div>
+            </details>
+        </div>
+        <label>Questions <input th:field="*{questionCount}" type="number" min="1" max="50"></label>
+        <div class="source-picker">
+            <span id="quiz-sources-label" class="field-label">Sources</span>
+            <details class="form-dropdown source-dropdown" th:unless="${#lists.isEmpty(documents)}">
+                <summary aria-labelledby="quiz-sources-label source-selection-summary"><span
+                        id="source-selection-summary"
+                        th:text="${documents[0].relativePath + (#lists.size(documents) > 1 ? ' +' + (#lists.size(documents) - 1) : '')}">Selected source</span>
+                </summary>
+                <div class="dropdown-options" role="group" aria-labelledby="quiz-sources-label">
+                    <label th:each="document : ${documents}">
+                        <input type="checkbox" name="sourceIds" th:value="${document.id}" checked>
+                        <span th:text="${document.relativePath}"></span>
+                    </label>
+                </div>
+            </details>
+            <p class="field-hint" th:if="${#lists.isEmpty(documents)}">No uploaded sources yet. <a
+                    th:href="@{/sources}">Add files</a> to create a quiz.</p>
+            <p class="field-hint" th:unless="${#lists.isEmpty(documents)}">Choose the files to use for this quiz.</p>
+        </div>
+        <button class="button button-primary" type="submit" data-loading-label="Generating quiz…"
+                th:disabled="${#lists.isEmpty(documents)}">Generate quiz <span>→</span></button>
+    </form>
 </div>
 </body>
 </html>

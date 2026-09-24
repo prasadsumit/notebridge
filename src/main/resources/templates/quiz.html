@@ -3,18 +3,22 @@
 <head><title th:text="${quiz.title + ' · Notebridge'}">Quiz · Notebridge</title></head>
 <body>
 <div class="page-content">
-<section class="page-header compact"><p class="eyebrow" th:text="${quiz.difficulty + ' · ' + quiz.questionType}"></p>
-    <h1 th:text="${quiz.title}"></h1>
-</section>
-<form th:action="@{/quizzes/{id}/submit(id=${quiz.id})}" method="post" class="question-list api-form">
-    <article th:each="question : ${quiz.questions}" class="question"><p class="feature-number"
-                                                                        th:text="${'Question ' + question.position}"></p>
-        <h2 th:text="${question.prompt}"></h2><label th:each="option, stat : ${question.options}" class="option"><input
-                th:type="${quiz.questionType.name() == 'MULTIPLE_CHOICE' ? 'radio' : 'checkbox'}"
-                th:name="${'answer_' + question.id}" th:value="${stat.index}"><span th:text="${option}"></span></label>
-    </article>
-    <button class="button button-primary" type="submit" data-loading-label="Saving answers…">Submit answers <span>→</span></button>
-</form>
+    <section class="page-header compact"><p class="eyebrow"
+                                            th:text="${quiz.difficulty + ' · ' + quiz.questionType}"></p>
+        <h1 th:text="${quiz.title}"></h1>
+    </section>
+    <form th:action="@{/quizzes/{id}/submit(id=${quiz.id})}" method="post" class="question-list api-form">
+        <article th:each="question : ${quiz.questions}" class="question"><p class="feature-number"
+                                                                            th:text="${'Question ' + question.position}"></p>
+            <h2 th:text="${question.prompt}"></h2><label th:each="option, stat : ${question.options}"
+                                                         class="option"><input
+                    th:type="${quiz.questionType.name() == 'MULTIPLE_CHOICE' ? 'radio' : 'checkbox'}"
+                    th:name="${'answer_' + question.id}" th:value="${stat.index}"><span
+                    th:text="${option}"></span></label>
+        </article>
+        <button class="button button-primary" type="submit" data-loading-label="Saving answers…">Submit answers
+            <span>→</span></button>
+    </form>
 </div>
 </body>
 </html>

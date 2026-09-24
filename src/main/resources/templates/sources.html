@@ -3,49 +3,61 @@
 <head><title>Sources · Notebridge</title></head>
 <body>
 <div class="page-content">
-<section class="page-header"><p class="eyebrow"></p>
-    <h1>Sources</h1>
-    <p class="lede">Add one or more Markdown, text, PDF, DOCX, or EPUB files. Your original files are only read;
-        Notebridge never changes them.</p>
-    <form id="folder-sync-form" th:action="@{/sources/sync}" method="post" enctype="multipart/form-data">
-        <input id="notes-files" name="files" type="file" accept=".md,.txt,.pdf,.docx,.epub,text/markdown,text/plain,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/epub+zip" multiple hidden>
-        <div class="source-dropzone" id="source-dropzone" role="button" tabindex="0" aria-describedby="source-picker-hint">
-            <strong>Drop files here</strong>
-            <span id="source-picker-hint">or choose files from your computer</span>
-            <button class="button button-secondary" type="button" id="choose-files">Choose files</button>
-        </div>
-        <div class="upload-status" id="upload-status" hidden aria-live="polite">
-            <div class="upload-status-heading"><span id="upload-status-label">Preparing upload…</span><span id="upload-percent">0%</span></div>
-            <div class="progress-track" role="progressbar" aria-label="File upload progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="upload-progress"></span></div>
-        </div>
-        <p class="selected-files" id="selected-files" aria-live="polite"></p>
-    </form>
-    <p class="hero-actions" th:unless="${#lists.isEmpty(documents)}">
-        <a class="button button-primary" th:href="@{/quizzes/new}">Create a quiz <span>→</span></a>
-    </p>
-    <p class="flash success" th:if="${message}" th:text="${message}"></p>
-    <p class="flash error" th:if="${error}" th:text="${error}"></p>
-</section>
-<section class="content-card">
-    <div class="card-heading"><div><h2>Indexed files</h2><p>Files available to generate quizzes.</p></div><span class="count-badge" th:text="${#lists.size(documents)} + ' files'"></span></div>
-    <p th:if="${#lists.isEmpty(documents)}" class="empty">No notes yet. Add files to create your first source set.</p>
-    <ul class="source-list" th:unless="${#lists.isEmpty(documents)}">
-        <li th:each="document : ${documents}">
-            <div class="source-details"><strong th:text="${document.relativePath}"></strong><span
-                    th:text="${document.format + ' · updated ' + #temporals.format(document.indexedAt, 'MMM d, yyyy')}"></span></div>
-            <form class="remove-source" th:action="@{/sources/{id}/delete(id=${document.id})}" method="post"
-                  onsubmit="return window.confirm('Remove this source? This will permanently delete it and all of its vector embeddings.');">
-                <button class="source-delete" type="submit" th:attr="aria-label=${'Remove ' + document.relativePath}"
-                        title="Remove source">
-                    <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-                         stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 10v6M14 10v6"></path>
-                    </svg>
-                </button>
-            </form>
-        </li>
-    </ul>
-</section>
+    <section class="page-header"><p class="eyebrow"></p>
+        <h1>Sources</h1>
+        <p class="lede">Add one or more Markdown, text, PDF, DOCX, or EPUB files. Your original files are only read;
+            Notebridge never changes them.</p>
+        <form id="folder-sync-form" th:action="@{/sources/sync}" method="post" enctype="multipart/form-data">
+            <input id="notes-files" name="files" type="file"
+                   accept=".md,.txt,.pdf,.docx,.epub,text/markdown,text/plain,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/epub+zip"
+                   multiple hidden>
+            <div class="source-dropzone" id="source-dropzone" role="button" tabindex="0"
+                 aria-describedby="source-picker-hint">
+                <strong>Drop files here</strong>
+                <span id="source-picker-hint">or choose files from your computer</span>
+                <button class="button button-secondary" type="button" id="choose-files">Choose files</button>
+            </div>
+            <div class="upload-status" id="upload-status" hidden aria-live="polite">
+                <div class="upload-status-heading"><span id="upload-status-label">Preparing upload…</span><span
+                        id="upload-percent">0%</span></div>
+                <div class="progress-track" role="progressbar" aria-label="File upload progress" aria-valuemin="0"
+                     aria-valuemax="100" aria-valuenow="0"><span id="upload-progress"></span></div>
+            </div>
+            <p class="selected-files" id="selected-files" aria-live="polite"></p>
+        </form>
+        <p class="hero-actions" th:unless="${#lists.isEmpty(documents)}">
+            <a class="button button-primary" th:href="@{/quizzes/new}">Create a quiz <span>→</span></a>
+        </p>
+        <p class="flash success" th:if="${message}" th:text="${message}"></p>
+        <p class="flash error" th:if="${error}" th:text="${error}"></p>
+    </section>
+    <section class="content-card">
+        <div class="card-heading">
+            <div><h2>Indexed files</h2>
+                <p>Files available to generate quizzes.</p></div>
+            <span class="count-badge" th:text="${#lists.size(documents)} + ' files'"></span></div>
+        <p th:if="${#lists.isEmpty(documents)}" class="empty">No notes yet. Add files to create your first source
+            set.</p>
+        <ul class="source-list" th:unless="${#lists.isEmpty(documents)}">
+            <li th:each="document : ${documents}">
+                <div class="source-details"><strong th:text="${document.relativePath}"></strong><span
+                        th:text="${document.format + ' · updated ' + #temporals.format(document.indexedAt, 'MMM d, yyyy')}"></span>
+                </div>
+                <form class="remove-source" th:action="@{/sources/{id}/delete(id=${document.id})}" method="post"
+                      onsubmit="return window.confirm('Remove this source? This will permanently delete it and all of its vector embeddings.');">
+                    <button class="source-delete" type="submit"
+                            th:attr="aria-label=${'Remove ' + document.relativePath}"
+                            title="Remove source">
+                        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="1.8"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 10v6M14 10v6"></path>
+                        </svg>
+                    </button>
+                </form>
+            </li>
+        </ul>
+    </section>
 </div>
 </body>
 </html>

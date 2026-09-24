@@ -9,7 +9,10 @@ import java.util.List;
 @Service
 class OpenAiProvider implements AiProvider {
     private final ChatClient chatClient;
-    OpenAiProvider(ChatClient.Builder builder) { this.chatClient = builder.build(); }
+
+    OpenAiProvider(ChatClient.Builder builder) {
+        this.chatClient = builder.build();
+    }
 
     @Override
     public GeneratedQuiz generateQuiz(QuizRequest request, List<SourceExcerpt> excerpts) {
@@ -17,7 +20,7 @@ class OpenAiProvider implements AiProvider {
                 .reduce("", (left, right) -> left + "\n\n" + right);
         String prompt = """
                 Create an evidence-grounded practice quiz. Use only the supplied note excerpts as the basis for correct answers.
-
+                
                 For every question, return one or more citations. Each citation must contain the chunkId of an excerpt
                 that directly supports the correct answer, plus a short searchHint of about 5-12 words
                 describing the relevant passage. The hint should help a reader find and review that passage in the
@@ -25,17 +28,17 @@ class OpenAiProvider implements AiProvider {
                 Do not invent source names, headings, page numbers, excerpt IDs, or unsupported details. The app
                 supplies the file, any recognizable heading, and excerpt position from each chunkId. Do not make
                 assumptions beyond the excerpts.
-
+                
                 Additional learning context is optional, must be clearly separate, and cannot be needed to answer correctly. %s question format is requested.
                 Difficulty: %s. Question count: %d. Topic: %s.
-
+                
                 Make every question and every answer option descriptive at every difficulty. Include the
                 relevant subject, condition, or scenario in the question rather than relying on vague prompts such as
                 "What is this?" or "Which is correct?". Write options as complete, specific alternatives. Increase difficulty through reasoning,
                 comparison, application, and subtle but evidence-supported distinctions—not by making the wording shorter,
                 more ambiguous, or less informative.
                 Do not systematically place correct answers in the first option. Vary their positions across the quiz.
-
+                
                 EVIDENCE:
                 %s
                 """.formatted(request.questionType(), request.difficulty(), request.questionCount(), request.topicOrDefault(), evidence);

@@ -14,19 +14,26 @@ import java.time.Instant;
 @Setter
 @NoArgsConstructor
 public class IndexedDocument {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @Column(nullable = false, unique = true, length = 1024)
     private String relativePath;
+
     @Column(nullable = false)
     private String format;
+
     @Column(nullable = false, length = 64)
     private String contentHash;
+
     @Column(nullable = false)
     private Instant sourceModifiedAt;
+
     @Column(nullable = false)
     private Instant indexedAt;
+
     @JdbcTypeCode(SqlTypes.LONGVARCHAR)
     @Column(nullable = false)
     private String content;
