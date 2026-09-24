@@ -2,6 +2,7 @@ package com.prasadsumit.notebridge.ingestion;
 
 import com.prasadsumit.notebridge.persistence.*;
 import com.prasadsumit.notebridge.review.ConflictDetectionService;
+import com.prasadsumit.notebridge.session.ActivityTracker;
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,6 +28,7 @@ class NoteSyncServiceTests {
         ConflictReviewRepository conflicts = mock(ConflictReviewRepository.class);
         ConflictDetectionService conflictDetection = mock(ConflictDetectionService.class);
         VectorStore vectorStore = mock(VectorStore.class);
+        ActivityTracker activityTracker = mock(ActivityTracker.class);
         MultipartFile file = mock(MultipartFile.class);
         String content = "a".repeat(3_000);
 
@@ -47,7 +49,7 @@ class NoteSyncServiceTests {
             return chunk;
         });
 
-        NoteSyncService service = new NoteSyncService(extractor, documents, chunks, conflicts, conflictDetection, vectorStore);
+        NoteSyncService service = new NoteSyncService(extractor, documents, chunks, conflicts, conflictDetection, vectorStore, activityTracker);
         SyncResult result = service.sync(List.of(new NoteSyncService.SelectedFile("notes.md", Instant.now(), file)));
 
         assertEquals(1, result.added());
@@ -66,6 +68,7 @@ class NoteSyncServiceTests {
         ConflictReviewRepository conflicts = mock(ConflictReviewRepository.class);
         ConflictDetectionService conflictDetection = mock(ConflictDetectionService.class);
         VectorStore vectorStore = mock(VectorStore.class);
+        ActivityTracker activityTracker = mock(ActivityTracker.class);
         IndexedDocument document = new IndexedDocument();
         document.setId(7L);
         document.setRelativePath("books/guide.epub");
@@ -78,7 +81,7 @@ class NoteSyncServiceTests {
         when(documents.findById(7L)).thenReturn(Optional.of(document));
         when(chunks.findByDocument(document)).thenReturn(List.of(first, second));
 
-        NoteSyncService service = new NoteSyncService(extractor, documents, chunks, conflicts, conflictDetection, vectorStore);
+        NoteSyncService service = new NoteSyncService(extractor, documents, chunks, conflicts, conflictDetection, vectorStore, activityTracker);
         String removedPath = service.remove(7L);
 
         assertEquals("books/guide.epub", removedPath);

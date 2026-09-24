@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" th:href="@{/css/app.css(v=5)}">
+    <link rel="stylesheet" th:href="@{/css/app.css(v=6)}">
 </head>
 <body>
 <div class="app-shell">
@@ -23,6 +23,7 @@
             <a th:href="@{/reviews}" data-route="/reviews">Review queue</a>
             <a th:href="@{/quizzes/new}" data-route="/quizzes">New quiz</a>
             <a th:href="@{/history}" data-route="/history">History</a>
+            <a th:href="@{/sessions}" data-route="/sessions">Sessions</a>
         </nav>
         <div class="sidebar-footer"><span class="status-dot"></span><span>Local-first workspace</span><small>Your notes
             stay read-only.</small></div>
@@ -43,6 +44,6 @@
             id="loading-overlay-title">Working…</strong><span
             id="loading-overlay-detail">Please keep this page open.</span></div>
 </div>
-<script th:src="@{/js/app.js(v=4)}" defer></script>
+<script th:src="@{/js/app.js(v=5)}" defer></script>
 </body>
 </html>

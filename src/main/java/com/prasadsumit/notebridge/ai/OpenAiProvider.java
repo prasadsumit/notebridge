@@ -2,16 +2,20 @@ package com.prasadsumit.notebridge.ai;
 
 import com.prasadsumit.notebridge.quiz.QuizRequest;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.metadata.Usage;
 import org.springframework.stereotype.Service;
+import com.prasadsumit.notebridge.session.ActivityTracker;
 
 import java.util.List;
 
 @Service
 class OpenAiProvider implements AiProvider {
     private final ChatClient chatClient;
+    private final ActivityTracker activityTracker;
 
-    OpenAiProvider(ChatClient.Builder builder) {
+    OpenAiProvider(ChatClient.Builder builder, ActivityTracker activityTracker) {
         this.chatClient = builder.build();
+        this.activityTracker = activityTracker;
     }
 
     @Override
@@ -42,8 +46,10 @@ class OpenAiProvider implements AiProvider {
                 EVIDENCE:
                 %s
                 """.formatted(request.questionType(), request.difficulty(), request.questionCount(), request.topicOrDefault(), evidence);
-        return chatClient.prompt().user(prompt).call().entity(GeneratedQuiz.class,
+        var response = chatClient.prompt().user(prompt).call().responseEntity(GeneratedQuiz.class,
                 spec -> spec.useProviderStructuredOutput().validateSchema());
+        recordUsage(response.response().getMetadata().getUsage());
+        return response.entity();
     }
 
     @Override
@@ -57,7 +63,18 @@ class OpenAiProvider implements AiProvider {
                 If a material error exists, state the specific correction briefly and give confidence 0-100.
                 EXCERPT (%s): %s
                 """.formatted(excerpt.citation(), excerpt.content());
-        return chatClient.prompt().user(prompt).call().entity(ConflictAssessment.class,
+        var response = chatClient.prompt().user(prompt).call().responseEntity(ConflictAssessment.class,
                 spec -> spec.useProviderStructuredOutput().validateSchema());
+        recordUsage(response.response().getMetadata().getUsage());
+        return response.entity();
+    }
+
+    private void recordUsage(Usage usage) {
+        if (usage == null) return;
+        activityTracker.addTokens(valueOrZero(usage.getPromptTokens()), valueOrZero(usage.getCompletionTokens()));
+    }
+
+    private int valueOrZero(Integer value) {
+        return value == null ? 0 : value;
     }
 }

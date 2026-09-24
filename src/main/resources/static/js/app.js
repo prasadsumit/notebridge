@@ -1,4 +1,17 @@
 (() => {
+  const localDateFormats = {
+    session: { weekday: 'long', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' },
+    date: { weekday: 'long', month: 'short', day: 'numeric' },
+    time: { hour: 'numeric', minute: '2-digit' }
+  };
+  document.querySelectorAll('time[data-local-datetime]').forEach(element => {
+    const instant = new Date(element.dateTime);
+    const format = localDateFormats[element.dataset.dateFormat];
+    if (!Number.isNaN(instant.getTime()) && format) {
+      element.textContent = new Intl.DateTimeFormat(undefined, format).format(instant);
+    }
+  });
+
   const loadingOverlay = document.getElementById('loading-overlay');
   const loadingOverlayTitle = document.getElementById('loading-overlay-title');
   const loadingOverlayDetail = document.getElementById('loading-overlay-detail');

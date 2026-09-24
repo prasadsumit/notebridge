@@ -43,3 +43,6 @@ management:
     health:
       probes:
         enabled: true
+
+notebridge:
+  time-zone: ${APP_TIME_ZONE:Asia/Kolkata}

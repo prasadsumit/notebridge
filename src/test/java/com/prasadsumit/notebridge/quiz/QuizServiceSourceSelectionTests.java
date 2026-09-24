@@ -6,6 +6,7 @@ import com.prasadsumit.notebridge.ai.GeneratedQuiz;
 import com.prasadsumit.notebridge.model.Difficulty;
 import com.prasadsumit.notebridge.model.QuestionType;
 import com.prasadsumit.notebridge.persistence.*;
+import com.prasadsumit.notebridge.session.ActivityTracker;
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
@@ -26,8 +27,9 @@ class QuizServiceSourceSelectionTests {
     private final QuizAttemptRepository attempts = mock(QuizAttemptRepository.class);
     private final AiProvider provider = mock(AiProvider.class);
     private final VectorStore vectorStore = mock(VectorStore.class);
+    private final ActivityTracker activityTracker = mock(ActivityTracker.class);
     private final QuizService service = new QuizService(chunks, documents, quizzes, attempts, provider,
-            new QuizValidationService(), new ObjectMapper(), vectorStore);
+            new QuizValidationService(), new ObjectMapper(), vectorStore, activityTracker);
 
     @Test
     void usesOnlySelectedSourceForQuizEvidence() {

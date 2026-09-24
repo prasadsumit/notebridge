@@ -2,6 +2,8 @@ package com.prasadsumit.notebridge.ingestion;
 
 import com.prasadsumit.notebridge.persistence.*;
 import com.prasadsumit.notebridge.review.ConflictDetectionService;
+import com.prasadsumit.notebridge.session.ActivityTracker;
+import com.prasadsumit.notebridge.session.ActivityType;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import org.springframework.ai.document.Document;
@@ -9,6 +11,8 @@ import org.springframework.ai.vectorstore.VectorStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.ai.tokenizer.JTokkitTokenCountEstimator;
+import org.springframework.ai.tokenizer.TokenCountEstimator;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -29,19 +33,27 @@ public class NoteSyncService {
     private final ConflictReviewRepository conflicts;
     private final ConflictDetectionService conflictDetection;
     private final VectorStore vectorStore;
+    private final ActivityTracker activityTracker;
+    private final TokenCountEstimator tokenEstimator = new JTokkitTokenCountEstimator();
 
     public NoteSyncService(FileContentExtractor extractor, IndexedDocumentRepository documents, NoteChunkRepository chunks,
-                           ConflictReviewRepository conflicts, ConflictDetectionService conflictDetection, VectorStore vectorStore) {
+                           ConflictReviewRepository conflicts, ConflictDetectionService conflictDetection, VectorStore vectorStore,
+                           ActivityTracker activityTracker) {
         this.extractor = extractor;
         this.documents = documents;
         this.chunks = chunks;
         this.conflicts = conflicts;
         this.conflictDetection = conflictDetection;
         this.vectorStore = vectorStore;
+        this.activityTracker = activityTracker;
     }
 
     @Transactional
     public SyncResult sync(List<SelectedFile> selectedFiles) throws IOException {
+        String selectedNames = selectedFiles.stream().map(SelectedFile::relativePath).limit(3)
+                .reduce((left, right) -> left + ", " + right).orElse("No supported files");
+        if (selectedFiles.size() > 3) selectedNames += " and " + (selectedFiles.size() - 3) + " more";
+        SessionActivity activity = activityTracker.start(ActivityType.FILE_UPLOAD, selectedNames);
         long syncStartedAt = System.nanoTime();
         int[] counts = new int[4];
         logger.info("source-sync stage=start files={}", selectedFiles.size());
@@ -110,7 +122,13 @@ public class NoteSyncService {
             int flagged = (counts[0] + counts[1]) == 0 ? 0 : conflictDetection.analyseEligibleChunks();
             logger.info("source-sync stage=conflict-review invoked={} flagged={} duration_ms={}", counts[0] + counts[1] > 0, flagged,
                     elapsedMillis(conflictDetectionStartedAt));
-            return new SyncResult(counts[0], counts[1], counts[2], counts[3], flagged);
+            SyncResult result = new SyncResult(counts[0], counts[1], counts[2], counts[3], flagged);
+            activityTracker.complete(activity, "%s · %d added · %d updated · %d unchanged"
+                    .formatted(selectedNames, result.added(), result.updated(), result.skipped()));
+            return result;
+        } catch (IOException | RuntimeException exception) {
+            activityTracker.fail(activity, exception);
+            throw exception;
         } finally {
             logger.info("source-sync stage=complete added={} updated={} unchanged={} duration_ms={}", counts[0], counts[1], counts[3],
                     elapsedMillis(syncStartedAt));
@@ -156,6 +174,7 @@ public class NoteSyncService {
             chunk = chunks.save(chunk);
             chunkSaveMs += elapsedMillis(chunkSaveStartedAt);
             long embeddingStartedAt = System.nanoTime();
+            activityTracker.addTokens(tokenEstimator.estimate(chunk.getContent()), 0);
             vectorStore.add(List.of(new Document(vectorId(chunk.getId()), chunk.getContent(), Map.of("chunkId", chunk.getId(), "path", document.getRelativePath()))));
             embeddingMs += elapsedMillis(embeddingStartedAt);
             // This loop controls its cursor explicitly so a newline boundary

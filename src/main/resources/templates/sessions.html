@@ -1,0 +1,74 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::div.page-content})}">
+<head><title>Sessions · Notebridge</title></head>
+<body>
+<div class="page-content">
+    <section class="page-header compact">
+        <p class="eyebrow"></p>
+        <h1>Sessions</h1>
+        <p class="lede">A session begins when Notebridge starts. Activity and model-token usage are stored locally.</p>
+    </section>
+
+    <section class="content-card session-card" th:if="${currentSession != null}">
+        <div class="card-heading">
+            <div><p class="session-kicker">Current session</p>
+                <h2><time data-local-datetime data-date-format="session"
+                          th:attr="datetime=${currentSession.startedAt}"
+                          th:text="${#temporals.format(currentSession.startedAt.atZone(sessionTimeZone), 'EEEE, MMM d · h:mm a')}"></time></h2></div>
+            <div class="token-total"><strong th:text="${#numbers.formatInteger(currentSession.totalTokens, 1, 'COMMA')}"></strong><span>total tokens</span></div>
+        </div>
+        <div class="token-breakdown">
+            <span th:text="${#numbers.formatInteger(currentSession.inputTokens, 1, 'COMMA') + ' input'}"></span>
+            <span th:text="${#numbers.formatInteger(currentSession.outputTokens, 1, 'COMMA') + ' output'}"></span>
+        </div>
+        <p class="empty" th:if="${#lists.isEmpty(currentSession.activities)}">No activity recorded.</p>
+        <ol class="activity-list" th:unless="${#lists.isEmpty(currentSession.activities)}">
+            <li th:each="activity : ${currentSession.activities}">
+                <span class="activity-marker" aria-hidden="true"></span>
+                <div class="activity-copy"><strong th:text="${activity.activityType.label}"></strong>
+                    <span th:text="${activity.description}"></span>
+                    <small><time data-local-datetime data-date-format="time"
+                                 th:attr="datetime=${activity.startedAt}"
+                                 th:text="${#temporals.format(activity.startedAt.atZone(sessionTimeZone), 'h:mm a')}"></time>
+                        <span th:text="${' · ' + #strings.toLowerCase(#strings.replace(activity.status.name(), '_', ' '))}"></span></small></div>
+                <div class="activity-tokens"><strong th:text="${#numbers.formatInteger(activity.totalTokens, 1, 'COMMA')}"></strong><span>tokens</span></div>
+            </li>
+        </ol>
+    </section>
+
+    <section class="sessions-archive">
+        <div class="section-heading"><h2>This month</h2><span th:text="${previousSessionCount} + ' previous'"></span></div>
+        <p class="empty content-card" th:if="${#lists.isEmpty(previousSessionDays)}">No previous sessions this month.</p>
+        <article class="content-card session-day-group" th:each="dayGroup : ${previousSessionDays}">
+            <div class="session-day-heading">
+                <h3 class="session-day-title" th:text="${#temporals.format(dayGroup.date, 'EEEE, MMM d')}"></h3>
+                <span th:text="${#lists.size(dayGroup.sessions) + (#lists.size(dayGroup.sessions) == 1 ? ' session' : ' sessions')}"></span>
+            </div>
+            <details class="previous-session" th:each="previousSession : ${dayGroup.sessions}">
+                <summary>
+                    <span><strong>Session</strong>
+                        <small><time data-local-datetime data-date-format="time"
+                                     th:attr="datetime=${previousSession.startedAt}"
+                                     th:text="${#temporals.format(previousSession.startedAt.atZone(sessionTimeZone), 'h:mm a')}"></time>
+                            <span> – </span><span th:if="${previousSession.endedAt == null}">ended unexpectedly</span><time
+                                    th:if="${previousSession.endedAt != null}" data-local-datetime data-date-format="time"
+                                    th:attr="datetime=${previousSession.endedAt}"
+                                    th:text="${#temporals.format(previousSession.endedAt.atZone(sessionTimeZone), 'h:mm a')}"></time></small></span>
+                    <span class="previous-session-total"><strong th:text="${#numbers.formatInteger(previousSession.totalTokens, 1, 'COMMA')}"></strong><small>tokens</small></span>
+                </summary>
+                <p class="empty session-empty" th:if="${#lists.isEmpty(previousSession.activities)}">No activity recorded.</p>
+                <ol class="activity-list compact-activities" th:unless="${#lists.isEmpty(previousSession.activities)}">
+                    <li th:each="activity : ${previousSession.activities}">
+                        <span class="activity-marker" aria-hidden="true"></span>
+                        <div class="activity-copy"><strong th:text="${activity.activityType.label}"></strong><span th:text="${activity.description}"></span></div>
+                        <div class="activity-tokens"><strong th:text="${#numbers.formatInteger(activity.totalTokens, 1, 'COMMA')}"></strong><span>tokens</span></div>
+                    </li>
+                </ol>
+            </details>
+        </article>
+    </section>
+
+    <p class="token-note">Token totals include provider-reported chat tokens and locally counted embedding input tokens.</p>
+</div>
+</body>
+</html>

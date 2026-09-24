@@ -6,12 +6,16 @@ import com.prasadsumit.notebridge.ai.AiProvider;
 import com.prasadsumit.notebridge.ai.GeneratedQuiz;
 import com.prasadsumit.notebridge.model.Difficulty;
 import com.prasadsumit.notebridge.persistence.*;
+import com.prasadsumit.notebridge.session.ActivityTracker;
+import com.prasadsumit.notebridge.session.ActivityType;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.filter.FilterExpressionBuilder;
+import org.springframework.ai.tokenizer.JTokkitTokenCountEstimator;
+import org.springframework.ai.tokenizer.TokenCountEstimator;
 
 import java.time.Instant;
 import java.util.*;
@@ -33,8 +37,10 @@ public class QuizService {
     private final QuizValidationService validator;
     private final ObjectMapper objectMapper;
     private final VectorStore vectorStore;
+    private final ActivityTracker activityTracker;
+    private final TokenCountEstimator tokenEstimator = new JTokkitTokenCountEstimator();
 
-    public QuizService(NoteChunkRepository chunks, IndexedDocumentRepository documents, QuizRepository quizzes, QuizAttemptRepository attempts, AiProvider provider, QuizValidationService validator, ObjectMapper objectMapper, VectorStore vectorStore) {
+    public QuizService(NoteChunkRepository chunks, IndexedDocumentRepository documents, QuizRepository quizzes, QuizAttemptRepository attempts, AiProvider provider, QuizValidationService validator, ObjectMapper objectMapper, VectorStore vectorStore, ActivityTracker activityTracker) {
         this.chunks = chunks;
         this.documents = documents;
         this.quizzes = quizzes;
@@ -43,6 +49,7 @@ public class QuizService {
         this.validator = validator;
         this.objectMapper = objectMapper;
         this.vectorStore = vectorStore;
+        this.activityTracker = activityTracker;
     }
 
     @Transactional
@@ -65,8 +72,14 @@ public class QuizService {
         if (eligible.isEmpty())
             throw new IllegalStateException("No eligible note excerpts are available in the selected sources.");
 
+        SessionActivity activity = activityTracker.start(ActivityType.QUIZ_CREATED,
+                "Creating %d-question %s quiz".formatted(request.questionCount(), request.difficulty().name().toLowerCase(Locale.ROOT)));
+
+        try {
+
         var sourcePaths = selectedSources.stream().map(IndexedDocument::getRelativePath).map(path -> (Object) path).toList();
         var sourceFilter = new FilterExpressionBuilder().in("path", sourcePaths).build();
+        activityTracker.addTokens(tokenEstimator.estimate(request.topicOrDefault()), 0);
         Set<Long> retrievedIds = vectorStore.similaritySearch(SearchRequest.builder().query(request.topicOrDefault())
                         .topK(limit).similarityThreshold(0.0).filterExpression(sourceFilter).build()).stream()
                 .map(Document::getMetadata)
@@ -114,7 +127,14 @@ public class QuizService {
                     .toList());
             quiz.getQuestions().add(target);
         }
-        return quizzes.save(quiz);
+        Quiz saved = quizzes.save(quiz);
+        activityTracker.complete(activity, "%s · %d questions · %d sources"
+                .formatted(saved.getTitle(), saved.getQuestions().size(), selectedSources.size()));
+        return saved;
+        } catch (RuntimeException exception) {
+            activityTracker.fail(activity, exception);
+            throw exception;
+        }
     }
 
     private ShuffledOptions shuffleOptions(GeneratedQuiz.GeneratedQuestion question) {
