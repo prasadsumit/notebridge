@@ -40,7 +40,7 @@ public class StudyController {
 
     @GetMapping("/sources")
     String sources(Model model) {
-        model.addAttribute("documents", syncServiceDocuments());
+        model.addAttribute("documents", syncServiceDocuments().stream().map(SourceListItem::from).toList());
         return "sources";
     }
 

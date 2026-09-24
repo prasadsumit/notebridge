@@ -41,7 +41,7 @@
         <ul class="source-list" th:unless="${#lists.isEmpty(documents)}">
             <li th:each="document : ${documents}">
                 <div class="source-details"><strong th:text="${document.relativePath}"></strong><span
-                        th:text="${document.format + ' · updated ' + #temporals.format(document.indexedAt, 'MMM d, yyyy')}"></span>
+                        th:text="${document.format + ' · ' + document.fileSize + ' · updated ' + #temporals.format(document.indexedAt, 'MMM d, yyyy')}"></span>
                 </div>
                 <form class="remove-source" th:action="@{/sources/{id}/delete(id=${document.id})}" method="post"
                       onsubmit="return window.confirm('Remove this source? This will permanently delete it and all of its vector embeddings.');">

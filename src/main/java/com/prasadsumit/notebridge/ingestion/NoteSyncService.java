@@ -64,6 +64,11 @@ public class NoteSyncService {
                     Optional<IndexedDocument> existing = documents.findByRelativePath(relativePath);
                     long lookupMs = elapsedMillis(lookupStartedAt);
                     if (existing.isPresent() && existing.get().getContentHash().equals(hash)) {
+                        IndexedDocument document = existing.get();
+                        if (!Objects.equals(document.getSourceFileSize(), selectedFile.file().getSize())) {
+                            document.setSourceFileSize(selectedFile.file().getSize());
+                            documents.save(document);
+                        }
                         counts[3]++;
                         logger.info("source-sync stage=file file={} outcome=unchanged chars={} extraction_ms={} lookup_ms={} total_ms={}",
                                 relativePath, content.length(), extractionMs, lookupMs, elapsedMillis(fileStartedAt));
@@ -83,6 +88,7 @@ public class NoteSyncService {
                         counts[0]++;
                     }
                     document.setFormat(extension(relativePath));
+                    document.setSourceFileSize(selectedFile.file().getSize());
                     document.setContentHash(hash);
                     document.setSourceModifiedAt(selectedFile.modifiedAt());
                     document.setIndexedAt(Instant.now());

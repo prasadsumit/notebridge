@@ -25,6 +25,8 @@ public class IndexedDocument {
     @Column(nullable = false)
     private String format;
 
+    private Long sourceFileSize;
+
     @Column(nullable = false, length = 64)
     private String contentHash;
 

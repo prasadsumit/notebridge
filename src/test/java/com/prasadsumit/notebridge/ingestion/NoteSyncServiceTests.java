@@ -31,6 +31,7 @@ class NoteSyncServiceTests {
         String content = "a".repeat(3_000);
 
         when(file.getOriginalFilename()).thenReturn("notes.md");
+        when(file.getSize()).thenReturn(3_000L);
         when(file.getInputStream()).thenReturn(new ByteArrayInputStream(content.getBytes()));
         when(extractor.supports("notes.md")).thenReturn(true);
         when(extractor.extract(any(), eq("notes.md"))).thenReturn(content);
@@ -51,6 +52,7 @@ class NoteSyncServiceTests {
 
         assertEquals(1, result.added());
         assertEquals(0, result.removed());
+        verify(documents).save(argThat(document -> document.getSourceFileSize() == 3_000L));
         verify(chunks, times(3)).save(any(NoteChunk.class));
         verify(vectorStore, times(3)).add(any());
         verify(documents, never()).delete(any(IndexedDocument.class));
